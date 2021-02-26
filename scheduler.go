@@ -8,7 +8,7 @@ import (
 	"github.com/robfig/cron"
 )
 
-// job scheduler
+// JobScheduler job scheduler
 type JobScheduler struct {
 	node          *JobNode
 	eventChan     chan *JobChangeEvent
