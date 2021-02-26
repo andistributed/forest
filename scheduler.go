@@ -67,7 +67,7 @@ func (sch *JobScheduler) handleJobUpdateEvent(event *JobChangeEvent) {
 	jobConf := event.Conf
 
 	if _, ok = sch.schedulePlans[jobConf.Id]; !ok {
-		log.Warnf("the job conf:%#v not  exist", jobConf)
+		log.Warnf("the job conf:%#v not exist", jobConf)
 		log.Warnf("the job conf:%#v change job create event", jobConf)
 
 		sch.createJobPlan(&JobChangeEvent{
@@ -148,7 +148,6 @@ func (sch *JobScheduler) createJobPlan(event *JobChangeEvent) {
 	}
 
 	if jobConf.Status == JobStopStatus {
-
 		log.Warnf("the job conf: %#v status is stop", jobConf)
 		return
 	}
@@ -369,18 +368,16 @@ func (sch *JobScheduler) handleJobConfSync(conf *JobConf) {
 				Type: JobCreateChangeEvent,
 				Conf: conf,
 			})
-		} else {
-
-			if plan.Version < conf.Version {
-				log.Warnf("sync the schedule plan %v must update", plan)
-				sch.handleJobUpdateEvent(&JobChangeEvent{
-					Type: JobUpdateChangeEvent,
-					Conf: conf,
-				})
-			}
-
 		}
 
+	} else {
+		if plan.Version < conf.Version {
+			log.Warnf("sync the schedule plan %v must update", plan)
+			sch.handleJobUpdateEvent(&JobChangeEvent{
+				Type: JobUpdateChangeEvent,
+				Conf: conf,
+			})
+		}
 	}
 
 }
