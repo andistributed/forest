@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/admpub/log"
 	"github.com/coreos/etcd/clientv3"
-	"github.com/labstack/gommon/log"
 )
 
 const (
@@ -280,7 +280,7 @@ func (group *Group) addClient(name, path string) {
 	}
 
 	group.clients[path] = client
-	log.Printf("add a new client for path:%s", path)
+	log.Infof("add a new client for path: %s", path)
 
 }
 
@@ -299,7 +299,7 @@ func (group *Group) deleteClient(path string) {
 	}
 
 	delete(group.clients, path)
-	log.Printf("delete a client for path:%s", path)
+	log.Infof("delete a client for path: %s", path)
 
 	// fail over
 	if group.node.state == NodeLeaderState {

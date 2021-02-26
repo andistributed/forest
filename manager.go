@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/labstack/gommon/log"
+	"github.com/admpub/log"
 )
 
 const (
@@ -98,7 +98,7 @@ func (manager *JobManager) handleJobCreateEvent(value []byte) {
 	}
 
 	if jobConf, err = UnpackJobConf(value); err != nil {
-		log.Printf("unpark the job conf err:%#v", err)
+		log.Errorf("unpack the job conf err: %#v", err)
 		return
 	}
 
@@ -121,7 +121,7 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 	}
 
 	if jobConf, err = UnpackJobConf(value); err != nil {
-		log.Printf("unpark the job conf err:%#v", err)
+		log.Errorf("unpack the job conf err:%#v", err)
 		return
 	}
 
@@ -293,7 +293,7 @@ func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
 
 		jobConf, err := UnpackJobConf(values[i])
 		if err != nil {
-			log.Printf("upark the job conf errror:%#v", err)
+			log.Errorf("unpack the job conf errror: %#v", err)
 			continue
 		}
 
@@ -408,7 +408,7 @@ func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 
 		groupConf, err := UnpackGroupConf(values[i])
 		if err != nil {
-			log.Printf("upark the group conf errror:%#v", err)
+			log.Errorf("unpack the group conf errror:%#v", err)
 			continue
 		}
 

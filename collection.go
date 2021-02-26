@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/labstack/gommon/log"
+	"github.com/admpub/log"
 )
 
 // collection job execute status
@@ -34,7 +34,7 @@ func NewJobCollection(node *JobNode) (c *JobCollection) {
 func (c *JobCollection) watch() {
 
 	keyChangeEventResponse := c.node.etcd.WatchWithPrefixKey(JobExecuteStatusCollectionPath)
-	log.Printf("the job collection success watch for path:%s ", JobExecuteStatusCollectionPath)
+	log.Infof("the job collection success watch for path: %s", JobExecuteStatusCollectionPath)
 	go func() {
 
 		for event := range keyChangeEventResponse.Event {
@@ -100,7 +100,7 @@ func (c *JobCollection) handleJobExecuteSnapshot(path string, snapshot *JobExecu
 	c.lk.Lock()
 	defer c.lk.Unlock()
 	if exist, err = c.checkExist(snapshot.Id); err != nil {
-		log.Printf("check snapshot exist  error:%v", err)
+		log.Errorf("check snapshot exist error: %v", err)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 	}
 	_, err = c.node.engine.Insert(snapshot)
 	if err != nil {
-		log.Printf("err:%#v", err)
+		log.Errorf("err: %#v", err)
 	}
 }
 

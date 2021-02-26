@@ -187,3 +187,8 @@ type ManualExecuteJobParam struct {
 	Name  string `json:"name"`
 	Group string `json:"group"`
 }
+
+type InputLogin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

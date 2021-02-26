@@ -3,7 +3,7 @@ package forest
 import (
 	"fmt"
 
-	"github.com/labstack/gommon/log"
+	"github.com/admpub/log"
 )
 
 const (
@@ -44,24 +44,24 @@ func (exec *JobExecutor) handleJobSnapshot(snapshot *JobSnapshot) {
 	)
 	group := snapshot.Group
 	if client, err = exec.node.groupManager.selectClient(group); err != nil {
-		log.Warnf("the group:%s,select a client error:%#v", group, err)
+		log.Warnf("the group: %s, select a client error: %#v", group, err)
 		return
 	}
 
 	clientName := client.name
 	snapshot.Ip = clientName
 
-	log.Printf("clientName:%#v", clientName)
+	log.Debugf("clientName: %v", clientName)
 	snapshotPath := fmt.Sprintf(JobClientSnapshotPath, group, clientName)
 
-	log.Printf("snapshotPath:%#v", snapshotPath)
+	log.Debugf("snapshotPath: %v", snapshotPath)
 	value, err := PackJobSnapshot(snapshot)
 	if err != nil {
-		log.Warnf("uPack the snapshot  error:%#v", group, err)
+		log.Warnf("Pack the snapshot %s error: %#v", group, err)
 		return
 	}
 	if err = exec.node.etcd.Put(snapshotPath+snapshot.Id, string(value)); err != nil {
-		log.Warnf("put  the snapshot  error:%#v", group, err)
+		log.Warnf("put the snapshot %s error: %#v", group, err)
 	}
 
 }

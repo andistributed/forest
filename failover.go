@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/labstack/gommon/log"
+	"github.com/admpub/log"
 )
 
 // fail over the job snapshot when the task client

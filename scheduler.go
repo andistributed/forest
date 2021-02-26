@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/labstack/gommon/log"
+	"github.com/admpub/log"
 	"github.com/robfig/cron"
 )
 
@@ -107,7 +107,7 @@ func (sch *JobScheduler) handleJobUpdateEvent(event *JobChangeEvent) {
 
 	// update the schedule plan
 	sch.schedulePlans[jobConf.Id] = plan
-	log.Printf("the job conf:%#v update a new schedule plan:%#v", jobConf, plan)
+	log.Infof("the job conf: %#v update a new schedule plan: %#v", jobConf, plan)
 }
 
 // handle the job delete event
@@ -120,15 +120,15 @@ func (sch *JobScheduler) handleJobDeleteEvent(event *JobChangeEvent) {
 	jobConf := event.Conf
 
 	if plan, ok = sch.schedulePlans[jobConf.Id]; !ok {
-		log.Printf("the job conf:%#v not  exist", jobConf)
+		log.Infof("the job conf: %#v not exist", jobConf)
 		return
 	}
 
 	if plan.Version > jobConf.Version && jobConf.Version != -1 {
-		log.Warnf("the job conf:%#v version:%d <  schedule plan:%#v,version:%d", jobConf, jobConf.Version, plan, plan.Version)
+		log.Warnf("the job conf: %#v version: %d <  schedule plan: %#v, version: %d", jobConf, jobConf.Version, plan, plan.Version)
 		return
 	}
-	log.Warnf("the job conf:%#v delete a  schedule plan:%#v", jobConf, plan)
+	log.Warnf("the job conf: %#v delete a  schedule plan: %#v", jobConf, plan)
 	delete(sch.schedulePlans, jobConf.Id)
 
 }
@@ -143,18 +143,18 @@ func (sch *JobScheduler) createJobPlan(event *JobChangeEvent) {
 	jobConf := event.Conf
 
 	if _, ok := sch.schedulePlans[jobConf.Id]; ok {
-		log.Warnf("the job conf:%#v exist", jobConf)
+		log.Warnf("the job conf: %#v exist", jobConf)
 		return
 	}
 
 	if jobConf.Status == JobStopStatus {
 
-		log.Warnf("the job conf:%#v status is stop", jobConf)
+		log.Warnf("the job conf: %#v status is stop", jobConf)
 		return
 	}
 
 	if schedule, err = cron.Parse(jobConf.Cron); err != nil {
-		log.Errorf("the job conf:%#v cron is error exp ", jobConf)
+		log.Errorf("the job conf: %#v cron is error exp", jobConf)
 		return
 	}
 
@@ -175,7 +175,7 @@ func (sch *JobScheduler) createJobPlan(event *JobChangeEvent) {
 
 	sch.schedulePlans[jobConf.Id] = plan
 
-	log.Printf("the job conf:%#v create a new schedule plan:%#v", jobConf, plan)
+	log.Infof("the job conf: %#v create a new schedule plan: %#v", jobConf, plan)
 }
 
 // push a job change event
@@ -201,7 +201,7 @@ func (sch *JobScheduler) loopSchedule() {
 		}
 
 		durationTime := sch.trySchedule()
-		log.Infof("the durationTime :%d", durationTime)
+		log.Infof("the durationTime: %d", durationTime)
 		timer.Reset(durationTime)
 	}
 
@@ -225,7 +225,7 @@ func (sch *JobScheduler) trySchedule() time.Duration {
 
 		scheduleTime := plan.NextTime
 		if scheduleTime.Before(now) && sch.node.state == NodeLeaderState {
-			log.Infof("schedule execute the plan:%#v", plan)
+			log.Infof("schedule execute the plan: %#v", plan)
 
 			snapshot := &JobSnapshot{
 				Id:         GenerateSerialNo() + plan.Id,
@@ -293,12 +293,12 @@ func (sch *JobScheduler) trySync() {
 	)
 
 	if sch.syncStatus == true {
-		log.Warn("the sync event is syncing ....")
+		log.Warn("the sync event is syncing....")
 		return
 	}
 
 	now := time.Now()
-	log.Warn("start sync the schedule plan ....")
+	log.Warn("start sync the schedule plan....")
 
 	sch.lk.Lock()
 	defer sch.lk.Unlock()
@@ -387,9 +387,9 @@ func (sch *JobScheduler) handleJobConfSync(conf *JobConf) {
 
 // notify the node state change event
 func (sch *JobScheduler) notify(state int) {
-	log.Infof("found the job :{} state notify state:%d", sch.node, state)
+	log.Infof("found the job #%v state notify state: %d", sch.node.id, state)
 	if state == NodeLeaderState {
-		log.Infof("found the job :{} state notify state:%d,must sync the job schedule plan", sch.node, state)
+		log.Infof("found the job #%v state notify state: %d, must sync the job schedule plan", sch.node.id, state)
 		sch.trySync()
 	}
 }
