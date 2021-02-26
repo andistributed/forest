@@ -6,7 +6,6 @@ import (
 
 func TestGenerateSerialNo(t *testing.T) {
 
-
 	t.Log(GenerateSerialNo())
 	t.Log(GenerateSerialNo())
 	t.Log(GenerateSerialNo())
@@ -21,6 +20,3 @@ func TestGenerateSerialNo(t *testing.T) {
 	t.Log(GenerateSerialNo())
 
 }
-
-
-

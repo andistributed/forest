@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
-	"github.com/labstack/gommon/log"
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/coreos/etcd/clientv3"
+	"github.com/labstack/gommon/log"
 )
 
 const (
@@ -67,7 +68,7 @@ RETRY:
 
 	for i := 0; i < len(keys); i++ {
 		path := string(keys[i])
-		groupConf, err := UParkGroupConf(values[i])
+		groupConf, err := UnpackGroupConf(values[i])
 		if err != nil {
 			log.Warnf("upark the group conf error:%#v", err)
 			continue
@@ -133,7 +134,7 @@ func (mgr *JobGroupManager) handleGroupChangeEvent(changeEvent *KeyChangeEvent) 
 
 func (mgr *JobGroupManager) handleGroupCreateEvent(changeEvent *KeyChangeEvent) {
 
-	groupConf, err := UParkGroupConf(changeEvent.Value)
+	groupConf, err := UnpackGroupConf(changeEvent.Value)
 	if err != nil {
 		log.Warnf("upark the group conf error:%#v", err)
 		return

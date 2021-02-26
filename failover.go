@@ -2,8 +2,9 @@ package forest
 
 import (
 	"fmt"
-	"github.com/labstack/gommon/log"
 	"time"
+
+	"github.com/labstack/gommon/log"
 )
 
 // fail over the job snapshot when the task client

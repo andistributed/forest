@@ -1,9 +1,10 @@
 package forest
 
 import (
-	"github.com/labstack/gommon/log"
 	"sync"
 	"time"
+
+	"github.com/labstack/gommon/log"
 )
 
 // collection job execute status
@@ -59,10 +60,10 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *KeyChangeEv
 			return
 		}
 
-		executeSnapshot, err := UParkJobExecuteSnapshot(event.Value)
+		executeSnapshot, err := UnpackJobExecuteSnapshot(event.Value)
 
 		if err != nil {
-			log.Warnf("UParkJobExecuteSnapshot:%s fail,err:%#v ", event.Value, err)
+			log.Warnf("UnpackJobExecuteSnapshot:%s fail,err:%#v ", event.Value, err)
 			_ = c.node.etcd.Delete(event.Key)
 			return
 		}
@@ -74,10 +75,10 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *KeyChangeEv
 			return
 		}
 
-		executeSnapshot, err := UParkJobExecuteSnapshot(event.Value)
+		executeSnapshot, err := UnpackJobExecuteSnapshot(event.Value)
 
 		if err != nil {
-			log.Warnf("UParkJobExecuteSnapshot:%s fail,err:%#v ", event.Value, err)
+			log.Warnf("UnpackJobExecuteSnapshot:%s fail,err:%#v ", event.Value, err)
 			return
 		}
 
@@ -199,10 +200,10 @@ func (c *JobCollection) loop() {
 
 			for pos := 0; pos < len(keys); pos++ {
 
-				executeSnapshot, err := UParkJobExecuteSnapshot(values[pos])
+				executeSnapshot, err := UnpackJobExecuteSnapshot(values[pos])
 
 				if err != nil {
-					log.Warnf("UParkJobExecuteSnapshot:%s fail,err:%#v ", values[pos], err)
+					log.Warnf("UnpackJobExecuteSnapshot:%s fail,err:%#v ", values[pos], err)
 					_ = c.node.etcd.Delete(string(keys[pos]))
 					continue
 				}
@@ -213,8 +214,6 @@ func (c *JobCollection) loop() {
 				}
 
 			}
-
-
 
 		}
 	}

@@ -2,6 +2,7 @@ package forest
 
 import (
 	"fmt"
+
 	"github.com/labstack/gommon/log"
 )
 
@@ -54,9 +55,9 @@ func (exec *JobExecutor) handleJobSnapshot(snapshot *JobSnapshot) {
 	snapshotPath := fmt.Sprintf(JobClientSnapshotPath, group, clientName)
 
 	log.Printf("snapshotPath:%#v", snapshotPath)
-	value, err := ParkJobSnapshot(snapshot)
+	value, err := PackJobSnapshot(snapshot)
 	if err != nil {
-		log.Warnf("uPark the snapshot  error:%#v", group, err)
+		log.Warnf("uPack the snapshot  error:%#v", group, err)
 		return
 	}
 	if err = exec.node.etcd.Put(snapshotPath+snapshot.Id, string(value)); err != nil {

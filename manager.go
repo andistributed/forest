@@ -2,8 +2,9 @@ package forest
 
 import (
 	"errors"
-	"github.com/labstack/gommon/log"
 	"strings"
+
+	"github.com/labstack/gommon/log"
 )
 
 const (
@@ -54,7 +55,7 @@ RETRY:
 	}
 
 	for i := 0; i < len(keys); i++ {
-		jobConf, err := UParkJobConf(values[i])
+		jobConf, err := UnpackJobConf(values[i])
 		if err != nil {
 			log.Warnf("upark the job conf error:%#v", err)
 			continue
@@ -96,7 +97,7 @@ func (manager *JobManager) handleJobCreateEvent(value []byte) {
 		return
 	}
 
-	if jobConf, err = UParkJobConf(value); err != nil {
+	if jobConf, err = UnpackJobConf(value); err != nil {
 		log.Printf("unpark the job conf err:%#v", err)
 		return
 	}
@@ -119,7 +120,7 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 		return
 	}
 
-	if jobConf, err = UParkJobConf(value); err != nil {
+	if jobConf, err = UnpackJobConf(value); err != nil {
 		log.Printf("unpark the job conf err:%#v", err)
 		return
 	}
@@ -179,7 +180,7 @@ func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 	jobConf.Id = GenerateSerialNo()
 	jobConf.Version = 1
 
-	if v, err = ParkJobConf(jobConf); err != nil {
+	if v, err = PackJobConf(jobConf); err != nil {
 		return
 	}
 	if success, _, err = manager.node.etcd.PutNotExist(JobConfPath+jobConf.Id, string(v)); err != nil {
@@ -227,12 +228,12 @@ func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
 		return
 	}
 
-	if oldConf, err = UParkJobConf([]byte(value)); err != nil {
+	if oldConf, err = UnpackJobConf([]byte(value)); err != nil {
 		return
 	}
 
 	jobConf.Version = oldConf.Version + 1
-	if v, err = ParkJobConf(jobConf); err != nil {
+	if v, err = PackJobConf(jobConf); err != nil {
 		return
 	}
 
@@ -290,7 +291,7 @@ func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
 	jobConfs = make([]*JobConf, 0)
 	for i := 0; i < len(values); i++ {
 
-		jobConf, err := UParkJobConf(values[i])
+		jobConf, err := UnpackJobConf(values[i])
 		if err != nil {
 			log.Printf("upark the job conf errror:%#v", err)
 			continue
@@ -310,7 +311,7 @@ func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
 		value   []byte
 		success bool
 	)
-	if value, err = ParkGroupConf(groupConf); err != nil {
+	if value, err = PackGroupConf(groupConf); err != nil {
 		return
 	}
 
@@ -345,7 +346,7 @@ func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 	groupConfs = make([]*GroupConf, 0)
 	for i := 0; i < len(values); i++ {
 
-		groupConf, err := UParkGroupConf(values[i])
+		groupConf, err := UnpackGroupConf(values[i])
 		if err != nil {
 			log.Printf("upark the group conf errror:%#v", err)
 			continue

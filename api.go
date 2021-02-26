@@ -2,13 +2,14 @@ package forest
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/go-xorm/xorm"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/robfig/cron"
-	"net/http"
-	"time"
 )
 
 type JobAPi struct {
@@ -26,7 +27,7 @@ func NewJobAPi(node *JobNode) (api *JobAPi) {
 		AllowOrigins: []string{"*", "*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAccessControlAllowOrigin},
 	}))
-	e.POST("/job/add", api.AddJob)
+	e.POST("/job/add", api.addJob)
 	e.POST("/job/edit", api.editJob)
 	e.POST("/job/delete", api.deleteJob)
 	e.POST("/job/list", api.jobList)
@@ -47,7 +48,7 @@ func NewJobAPi(node *JobNode) (api *JobAPi) {
 }
 
 // add a new job
-func (api *JobAPi) AddJob(context echo.Context) (err error) {
+func (api *JobAPi) addJob(context echo.Context) (err error) {
 
 	var (
 		message string
@@ -391,7 +392,7 @@ func (api *JobAPi) snapshotList(context echo.Context) (err error) {
 		}
 		var snapshot *JobSnapshot
 
-		if snapshot, err = UParkJobSnapshot(value); err != nil {
+		if snapshot, err = UnpackJobSnapshot(value); err != nil {
 			continue
 		}
 
@@ -552,7 +553,7 @@ func (api *JobAPi) manualExecute(context echo.Context) (err error) {
 		return context.JSON(http.StatusOK, Result{Code: -1, Message: "此任务配置内容为空"})
 	}
 
-	if conf, err = UParkJobConf(value); err != nil {
+	if conf, err = UnpackJobConf(value); err != nil {
 		return context.JSON(http.StatusOK, Result{Code: -1, Message: "非法的任务配置内容"})
 	}
 
@@ -581,7 +582,7 @@ func (api *JobAPi) manualExecute(context echo.Context) (err error) {
 	}
 
 	// park the job snapshot
-	if value, err = ParkJobSnapshot(snapshot); err != nil {
+	if value, err = PackJobSnapshot(snapshot); err != nil {
 
 		return context.JSON(http.StatusOK, Result{Code: -1, Message: err.Error()})
 	}
