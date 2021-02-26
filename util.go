@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/labstack/gommon/log"
+	"github.com/admpub/log"
 )
 
 func GenerateSerialNo() string {

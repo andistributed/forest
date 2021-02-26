@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/admpub/log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	"github.com/labstack/gommon/log"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 	TTL              = 5
 )
 
-// job node
+// JobNode job node
 type JobNode struct {
 	id           string
 	registerPath string
@@ -35,12 +35,12 @@ type JobNode struct {
 	close        chan bool
 }
 
-// node state change  listener
+// NodeStateChangeListener node state change listener
 type NodeStateChangeListener interface {
 	notify(int)
 }
 
-func NewJobNode(id string, etcd *Etcd, httpAddress, dbUrl string) (node *JobNode, err error) {
+func NewJobNode(id string, etcd *Etcd, httpAddress, dbUrl string, auth *ApiAuth) (node *JobNode, err error) {
 
 	engine, err := xorm.NewEngine("mysql", dbUrl)
 	if err != nil {
@@ -76,7 +76,7 @@ func NewJobNode(id string, etcd *Etcd, httpAddress, dbUrl string) (node *JobNode
 	node.manager = NewJobManager(node)
 
 	// create a job http api
-	node.api = NewJobAPi(node)
+	node.api = NewJobAPi(node, auth)
 
 	return
 }
@@ -114,14 +114,14 @@ func (node *JobNode) initNode() {
 	if !txResponse.Success {
 		log.Fatalf("the job node:%s, fail register to :%s,the job node id exist ", node.id, node.registerPath)
 	}
-	log.Printf("the job node:%s, success register to :%s", node.id, node.registerPath)
+	log.Infof("the job node:%s, success register to :%s", node.id, node.registerPath)
 	node.watchRegisterJobNode()
 	node.watchElectPath()
 	go node.loopStartElect()
 
 }
 
-// bootstrap
+// Bootstrap bootstrap
 func (node *JobNode) Bootstrap() {
 
 	go node.groupManager.loopLoadGroups()
@@ -159,7 +159,7 @@ func (node *JobNode) handleRegisterJobNodeChangeEvent(changeEvent *KeyChangeEven
 	case KeyUpdateChangeEvent:
 
 	case KeyDeleteChangeEvent:
-		log.Printf("found the job node:%s register to path:%s has lose", node.id, node.registerPath)
+		log.Infof("found the job node:%s register to path:%s has lose", node.id, node.registerPath)
 		go node.loopRegisterJobNode()
 
 	}
@@ -180,13 +180,13 @@ RETRY:
 		err        error
 	)
 	if txResponse, err = node.registerJobNode(); err != nil {
-		log.Printf("the job node:%s, fail register to :%s", node.id, node.registerPath)
+		log.Infof("the job node:%s, fail register to :%s", node.id, node.registerPath)
 		time.Sleep(time.Second)
 		goto RETRY
 	}
 
 	if txResponse.Success {
-		log.Printf("the job node:%s, success register to :%s", node.id, node.registerPath)
+		log.Infof("the job node:%s, success register to :%s", node.id, node.registerPath)
 	} else {
 
 		v := txResponse.Value
@@ -194,7 +194,7 @@ RETRY:
 			time.Sleep(time.Second)
 			log.Fatalf("the job node:%s,the other job node :%s has already  register to :%s", node.id, v, node.registerPath)
 		}
-		log.Printf("the job node:%s,has already success register to :%s", node.id, node.registerPath)
+		log.Infof("the job node:%s,has already success register to :%s", node.id, node.registerPath)
 	}
 
 }
@@ -246,21 +246,21 @@ RETRY:
 		err        error
 	)
 	if txResponse, err = node.elect(); err != nil {
-		log.Printf("the job node:%s, elect fail to :%s", node.id, node.electPath)
+		log.Infof("the job node:%s, elect fail to :%s", node.id, node.electPath)
 		time.Sleep(time.Second)
 		goto RETRY
 	}
 
 	if txResponse.Success {
 		node.changeState(NodeLeaderState)
-		log.Printf("the job node:%s, elect success to :%s", node.id, node.electPath)
+		log.Infof("the job node:%s, elect success to :%s", node.id, node.electPath)
 	} else {
 		v := txResponse.Value
 		if v != node.id {
-			log.Printf("the job node:%s,give up elect request because the other job node：%s elect to:%s", node.id, v, node.electPath)
+			log.Infof("the job node:%s,give up elect request because the other job node：%s elect to:%s", node.id, v, node.electPath)
 			node.changeState(NodeFollowerState)
 		} else {
-			log.Printf("the job node:%s, has already elect  success to :%s", node.id, node.electPath)
+			log.Infof("the job node:%s, has already elect  success to :%s", node.id, node.electPath)
 			node.changeState(NodeLeaderState)
 		}
 	}

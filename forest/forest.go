@@ -1,14 +1,18 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/admpub/securecookie"
 	"github.com/andistributed/forest"
 	"github.com/andistributed/forest/etcd"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/prometheus/common/log"
+	"github.com/webx-top/com"
 )
 
 const (
@@ -31,6 +35,9 @@ func main() {
 	etcdKeyFile := flag.String("etcd-key", DefaultEtcdKey, "etcd-key file")
 	endpoints := flag.String("etcd-endpoints", DefaultEndpoints, "etcd endpoints")
 	httpAddress := flag.String("http-address", DefaultHttpAddress, "http address")
+	jwtKey := flag.String("jwtkey", com.ByteMd5(securecookie.GenerateRandomKey(32)), "jwt key")
+	admName := flag.String("admin.name", "admin", "admin name")
+	admPassword := flag.String("admin.password", "", "admin password")
 	etcdDialTime := flag.Int64("etcd-dailtimeout", DefaultDialTimeout, "etcd dailtimeout")
 	help := flag.String("help", "", "forest help")
 	dbUrl := flag.String("db-url", DefaultDbUrl, "db-url for mysql")
@@ -50,10 +57,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	node, err := forest.NewJobNode(ip, etcd, *httpAddress, *dbUrl)
+	auth := &forest.ApiAuth{
+		Auth: func(user *forest.InputLogin) error {
+			if user.Username != *admName {
+				return fmt.Errorf("用户名不正确: %s", user.Username)
+			}
+			if user.Password != *admPassword {
+				return errors.New("密码不正确")
+			}
+			return nil
+		},
+		JWTKey: *jwtKey,
+	}
+	node, err := forest.NewJobNode(ip, etcd, *httpAddress, *dbUrl, auth)
 	if err != nil {
-
 		log.Fatal(err)
 	}
 
