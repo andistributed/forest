@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -22,6 +23,10 @@ const (
 	DefaultDbUrl       = "root:123456@tcp(127.0.0.1:3306)/forest?charset=utf8"
 	DefaultEtcdCert    = `` //"/etc/kubernetes/pki/etcd/ca.crt"
 	DefaultEtcdKey     = `` //"/etc/kubernetes/pki/etcd/ca.key"
+)
+
+var (
+	errPasswordInvalid = errors.New("密码不正确")
 )
 
 func main() {
@@ -57,13 +62,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if len(*admPassword) == 0 {
+		*admPassword = os.Getenv("FOREST_ADMIN_PASSWORD")
+	}
+	if len(*admName) == 0 {
+		*admName = os.Getenv("FOREST_ADMIN_NAME")
+	}
+	if len(*admName) == 0 {
+		*admName = `admin`
+	}
 	auth := &forest.ApiAuth{
 		Auth: func(user *forest.InputLogin) error {
 			if user.Username != *admName {
 				return fmt.Errorf("用户名不正确: %s", user.Username)
 			}
 			if user.Password != *admPassword {
-				return errors.New("密码不正确")
+				return errPasswordInvalid
 			}
 			return nil
 		},
