@@ -124,7 +124,7 @@ func (api *JobAPi) login(context echo.Context) (err error) {
 		NotBefore: 0,
 		Subject:   user.Username,
 	}
-	signed, err = mwjwt.BuildStandardSignedString(claims, api.auth.JWTKey)
+	signed, err = mwjwt.BuildStandardSignedString(claims, []byte(api.auth.JWTKey))
 	if err != nil {
 		message = err.Error()
 		goto ERROR
