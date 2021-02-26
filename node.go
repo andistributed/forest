@@ -246,14 +246,14 @@ RETRY:
 		err        error
 	)
 	if txResponse, err = node.elect(); err != nil {
-		log.Printf("the job node:%s,elect  fail to :%s", node.id, node.electPath)
+		log.Printf("the job node:%s, elect fail to :%s", node.id, node.electPath)
 		time.Sleep(time.Second)
 		goto RETRY
 	}
 
 	if txResponse.Success {
 		node.changeState(NodeLeaderState)
-		log.Printf("the job node:%s,elect  success to :%s", node.id, node.electPath)
+		log.Printf("the job node:%s, elect success to :%s", node.id, node.electPath)
 	} else {
 		v := txResponse.Value
 		if v != node.id {

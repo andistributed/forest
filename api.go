@@ -33,6 +33,8 @@ func NewJobAPi(node *JobNode) (api *JobAPi) {
 	e.POST("/job/list", api.jobList)
 	e.POST("/job/execute", api.manualExecute)
 	e.POST("/group/add", api.addGroup)
+	e.POST("/group/edit", api.editGroup)
+	e.POST("/group/delete", api.deleteGroup)
 	e.POST("/group/list", api.groupList)
 	e.POST("/node/list", api.nodeList)
 	e.POST("/plan/list", api.planList)
@@ -219,7 +221,7 @@ func (api *JobAPi) addGroup(context echo.Context) (err error) {
 	}
 
 	if groupConf.Remark == "" {
-		message = "任务集群描述"
+		message = "任务集群描述不能为空"
 		goto ERROR
 	}
 
@@ -229,6 +231,69 @@ func (api *JobAPi) addGroup(context echo.Context) (err error) {
 	}
 
 	return context.JSON(http.StatusOK, Result{Code: 0, Data: groupConf, Message: "添加成功"})
+
+ERROR:
+	return context.JSON(http.StatusOK, Result{Code: -1, Message: message})
+}
+
+// edit a job group
+func (api *JobAPi) editGroup(context echo.Context) (err error) {
+
+	var (
+		message string
+	)
+	groupConf := new(GroupConf)
+	if err = context.Bind(groupConf); err != nil {
+
+		message = "请求参数不能为空"
+		goto ERROR
+	}
+
+	if groupConf.Name == "" {
+		message = "任务集群名称不能为空"
+		goto ERROR
+	}
+
+	if groupConf.Remark == "" {
+		message = "任务集群描述不能为空"
+		goto ERROR
+	}
+
+	if err = api.node.manager.editGroup(groupConf); err != nil {
+		message = err.Error()
+		goto ERROR
+	}
+
+	return context.JSON(http.StatusOK, Result{Code: 0, Data: groupConf, Message: "添加成功"})
+
+ERROR:
+	return context.JSON(http.StatusOK, Result{Code: -1, Message: message})
+}
+
+// delete a group
+func (api *JobAPi) deleteGroup(context echo.Context) (err error) {
+
+	var (
+		message string
+	)
+	groupConf := new(GroupConf)
+	if err = context.Bind(groupConf); err != nil {
+
+		message = "请求参数不能为空"
+		goto ERROR
+	}
+
+	if groupConf.Name == "" {
+		message = "任务集群名称不能为空"
+		goto ERROR
+	}
+
+	if err = api.node.manager.deleteGroup(groupConf); err != nil {
+		message = err.Error()
+		goto ERROR
+	}
+
+	return context.JSON(http.StatusOK, Result{Code: 0, Data: groupConf, Message: "删除成功"})
 
 ERROR:
 	return context.JSON(http.StatusOK, Result{Code: -1, Message: message})

@@ -294,12 +294,12 @@ func (group *Group) deleteClient(path string) {
 	group.lk.Lock()
 	defer group.lk.Unlock()
 	if client, ok = group.clients[path]; !ok {
-		log.Warnf("path:%s,the client not  exist", path)
+		log.Warnf("path: %s, the client not exist", path)
 		return
 	}
 
 	delete(group.clients, path)
-	log.Printf("delete a  client for path:%s", path)
+	log.Printf("delete a client for path:%s", path)
 
 	// fail over
 	if group.node.state == NodeLeaderState {
@@ -313,7 +313,7 @@ func (group *Group) selectClient() (client *Client, err error) {
 	defer group.lk.RUnlock()
 
 	if len(group.clients) == 0 {
-		err = errors.New(fmt.Sprintf("the group:%s,has no client to select", group.name))
+		err = fmt.Errorf("the group: %s, has no client to select", group.name)
 		return
 	}
 
@@ -337,7 +337,7 @@ func (group *Group) selectClient() (client *Client, err error) {
 
 }
 
-// client
+// Client client
 type Client struct {
 	name string
 	path string
