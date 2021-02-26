@@ -18,7 +18,7 @@ type Etcd struct {
 }
 
 // NewEtcd create a etcd
-func NewEtcd(endpoints []string, timeout time.Duration) (etcd *Etcd, err error) {
+func NewEtcd(endpoints []string, timeout time.Duration, opts ...func(*clientv3.Config)) (etcd *Etcd, err error) {
 
 	var (
 		client *clientv3.Client
@@ -28,12 +28,14 @@ func NewEtcd(endpoints []string, timeout time.Duration) (etcd *Etcd, err error) 
 		Endpoints:   endpoints,
 		DialTimeout: timeout,
 	}
+	for _, opt := range opts {
+		opt(&conf)
+	}
 	if client, err = clientv3.New(conf); err != nil {
 		return
 	}
 
 	etcd = &Etcd{
-
 		endpoints: endpoints,
 		client:    client,
 		kv:        clientv3.NewKV(client),
