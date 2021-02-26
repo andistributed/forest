@@ -17,7 +17,7 @@ type Etcd struct {
 	timeout time.Duration
 }
 
-// create a etcd
+// NewEtcd create a etcd
 func NewEtcd(endpoints []string, timeout time.Duration) (etcd *Etcd, err error) {
 
 	var (
@@ -43,7 +43,7 @@ func NewEtcd(endpoints []string, timeout time.Duration) (etcd *Etcd, err error) 
 	return
 }
 
-// get value  from a key
+// Get get value from a key
 func (etcd *Etcd) Get(key string) (value []byte, err error) {
 
 	var (
@@ -66,7 +66,7 @@ func (etcd *Etcd) Get(key string) (value []byte, err error) {
 
 }
 
-// get values from  prefixKey
+// GetWithPrefixKey get values from prefixKey
 func (etcd *Etcd) GetWithPrefixKey(prefixKey string) (keys [][]byte, values [][]byte, err error) {
 
 	var (
@@ -95,7 +95,7 @@ func (etcd *Etcd) GetWithPrefixKey(prefixKey string) (keys [][]byte, values [][]
 
 }
 
-// get values from  prefixKey limit
+// GetWithPrefixKeyLimit get values from prefixKey limit
 func (etcd *Etcd) GetWithPrefixKeyLimit(prefixKey string, limit int64) (keys [][]byte, values [][]byte, err error) {
 
 	var (
@@ -124,7 +124,7 @@ func (etcd *Etcd) GetWithPrefixKeyLimit(prefixKey string, limit int64) (keys [][
 
 }
 
-// put a key
+// Put put a key
 func (etcd *Etcd) Put(key, value string) (err error) {
 
 	ctx, cancelFunc := context.WithTimeout(context.Background(), etcd.timeout)
@@ -137,7 +137,7 @@ func (etcd *Etcd) Put(key, value string) (err error) {
 	return
 }
 
-// put a key not exist
+// PutNotExist put a key not exist
 func (etcd *Etcd) PutNotExist(key, value string) (success bool, oldValue []byte, err error) {
 
 	var (
@@ -203,7 +203,7 @@ func (etcd *Etcd) Delete(key string) (err error) {
 	return
 }
 
-// delete the keys  with prefix key
+// DeleteWithPrefixKey delete the keys with prefix key
 func (etcd *Etcd) DeleteWithPrefixKey(prefixKey string) (err error) {
 
 	ctx, cancelFunc := context.WithTimeout(context.Background(), etcd.timeout)
@@ -214,7 +214,7 @@ func (etcd *Etcd) DeleteWithPrefixKey(prefixKey string) (err error) {
 	return
 }
 
-// watch a key
+// Watch watch a key
 func (etcd *Etcd) Watch(key string) (keyChangeEventResponse *WatchKeyChangeResponse) {
 
 	watcher := clientv3.NewWatcher(etcd.client)
@@ -245,7 +245,7 @@ func (etcd *Etcd) Watch(key string) (keyChangeEventResponse *WatchKeyChangeRespo
 	return
 }
 
-// watch with prefix key
+// WatchWithPrefixKey watch with prefix key
 func (etcd *Etcd) WatchWithPrefixKey(prefixKey string) (keyChangeEventResponse *WatchKeyChangeResponse) {
 
 	watcher := clientv3.NewWatcher(etcd.client)

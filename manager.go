@@ -328,6 +328,66 @@ func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
 
 }
 
+// edit group
+func (manager *JobManager) editGroup(groupConf *GroupConf) (err error) {
+
+	var (
+		value   []byte
+		newV    []byte
+		success bool
+	)
+	if value, err = manager.node.etcd.Get(GroupConfPath + groupConf.Name); err != nil {
+		return
+	}
+
+	if len(value) == 0 {
+		err = errors.New("此任务集群不存在")
+		return
+	}
+
+	if newV, err = PackGroupConf(groupConf); err != nil {
+		return
+	}
+
+	if success, err = manager.node.etcd.Update(GroupConfPath+groupConf.Name, string(newV), string(value)); err != nil {
+		return
+	}
+
+	if !success {
+
+		err = errors.New("此任务集群已存在")
+	}
+
+	return
+
+}
+
+// delete group
+func (manager *JobManager) deleteGroup(groupConf *GroupConf) (err error) {
+
+	var (
+		value []byte
+	)
+
+	if groupConf.Name == "" {
+		err = errors.New("此任务集群不存在")
+		return
+	}
+
+	if value, err = manager.node.etcd.Get(GroupConfPath + groupConf.Name); err != nil {
+		return
+	}
+
+	if len(value) == 0 {
+		err = errors.New("此任务集群不存在")
+		return
+	}
+
+	err = manager.node.etcd.Delete(GroupConfPath + groupConf.Name)
+
+	return
+}
+
 // group list
 func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 

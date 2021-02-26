@@ -37,14 +37,14 @@ const (
 	JobExecuteSnapshotErrorStatus   = -1
 )
 
-// key 变化事件
+// KeyChangeEvent key 变化事件
 type KeyChangeEvent struct {
 	Type  int
 	Key   string
 	Value []byte
 }
 
-// 监听key 变化响应
+// WatchKeyChangeResponse 监听key 变化响应
 type WatchKeyChangeResponse struct {
 	Event      chan *KeyChangeEvent
 	CancelFunc context.CancelFunc
@@ -64,7 +64,7 @@ type JobClientDeleteEvent struct {
 	Group  *Group
 }
 
-// job
+// JobConf job
 type JobConf struct {
 	Id      string `json:"id"`
 	Name    string `json:"name"`
@@ -139,29 +139,29 @@ type QuerySnapshotParam struct {
 	Ip    string `json:"ip"`
 }
 
-// node
+// Node node
 type Node struct {
 	Name  string `json:"name"`
 	State int    `json:"state"`
 }
 
 type JobExecuteSnapshot struct {
-	Id         string `json:"id",xorm:"pk"`
-	JobId      string `json:"jobId",xorm:"job_id"`
-	Name       string `json:"name",xorm:"name"`
-	Ip         string `json:"ip",xorm:"ip"`
-	Group      string `json:"group",xorm:"group"`
-	Cron       string `json:"cron",xorm:"cron"`
-	Target     string `json:"target",xorm:"target"`
-	Params     string `json:"params",xorm:"params"`
-	Mobile     string `json:"mobile",xorm:"mobile"`
-	Remark     string `json:"remark",xorm:"remark"`
-	CreateTime string `json:"createTime",xorm:"create_time"`
-	StartTime  string `json:"startTime",xorm:"start_time"`
-	FinishTime string `json:"finishTime",xorm:"finish_time"`
-	Times      int    `json:"times",xorm:"times"`
-	Status     int    `json:"status",xorm:"status"`
-	Result     string `json:"result",xorm:"result"`
+	Id         string `json:"id" xorm:"pk"`
+	JobId      string `json:"jobId" xorm:"job_id"`
+	Name       string `json:"name" xorm:"name"`
+	Ip         string `json:"ip" xorm:"ip"`
+	Group      string `json:"group" xorm:"group"`
+	Cron       string `json:"cron" xorm:"cron"`
+	Target     string `json:"target" xorm:"target"`
+	Params     string `json:"params" xorm:"params"`
+	Mobile     string `json:"mobile" xorm:"mobile"`
+	Remark     string `json:"remark" xorm:"remark"`
+	CreateTime string `json:"createTime" xorm:"create_time"`
+	StartTime  string `json:"startTime" xorm:"start_time"`
+	FinishTime string `json:"finishTime" xorm:"finish_time"`
+	Times      int    `json:"times" xorm:"times"`
+	Status     int    `json:"status" xorm:"status"`
+	Result     string `json:"result" xorm:"result"`
 }
 
 type QueryExecuteSnapshotParam struct {
@@ -181,7 +181,7 @@ type PageResult struct {
 	List       interface{} `json:"list"`
 }
 
-//  manual execute job
+// ManualExecuteJobParam manual execute job
 type ManualExecuteJobParam struct {
 	Id    string `json:"id"`
 	Name  string `json:"name"`

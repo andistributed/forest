@@ -298,7 +298,7 @@ func (sch *JobScheduler) trySync() {
 	}
 
 	now := time.Now()
-	log.Warn("start sync the  schedule plan ....")
+	log.Warn("start sync the schedule plan ....")
 
 	sch.lk.Lock()
 	defer sch.lk.Unlock()
@@ -333,7 +333,7 @@ func (sch *JobScheduler) trySync() {
 		}
 	}
 
-	log.Infof("finish sync the  schedule plan use【%dms】....", time.Now().Sub(now)/time.Millisecond)
+	log.Infof("finish sync the schedule plan use【%dms】....", time.Now().Sub(now)/time.Millisecond)
 
 }
 
