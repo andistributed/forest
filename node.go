@@ -2,10 +2,11 @@ package forest
 
 import (
 	"fmt"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	"github.com/labstack/gommon/log"
-	"time"
 )
 
 const (

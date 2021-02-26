@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/busgo/forest"
-	"github.com/prometheus/common/log"
 	"strings"
 	"time"
+
+	"github.com/andistributed/forest"
+	"github.com/prometheus/common/log"
 )
 
 const (
