@@ -1,17 +1,9 @@
 package forest
 
 import (
-	"context"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
 	"github.com/robfig/cron"
-)
-
-const (
-	KeyCreateChangeEvent = iota
-	KeyUpdateChangeEvent
-	KeyDeleteChangeEvent
 )
 
 const (
@@ -36,28 +28,6 @@ const (
 	JobExecuteSnapshotUnkonwStatus  = 3
 	JobExecuteSnapshotErrorStatus   = -1
 )
-
-// KeyChangeEvent key 变化事件
-type KeyChangeEvent struct {
-	Type  int
-	Key   string
-	Value []byte
-}
-
-// WatchKeyChangeResponse 监听key 变化响应
-type WatchKeyChangeResponse struct {
-	Event      chan *KeyChangeEvent
-	CancelFunc context.CancelFunc
-	Watcher    clientv3.Watcher
-}
-
-type TxResponse struct {
-	Success bool
-	LeaseID clientv3.LeaseID
-	Lease   clientv3.Lease
-	Key     string
-	Value   string
-}
 
 type JobClientDeleteEvent struct {
 	Client *Client

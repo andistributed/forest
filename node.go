@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"github.com/admpub/log"
+	"github.com/andistributed/etcd"
+	"github.com/andistributed/etcd/etcdevent"
+	"github.com/andistributed/etcd/etcdresponse"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	"github.com/webx-top/echo/engine"
@@ -21,7 +24,7 @@ type JobNode struct {
 	id           string
 	registerPath string
 	electPath    string
-	etcd         *Etcd
+	etcd         *etcd.Etcd
 	state        int
 	manager      *JobManager
 	scheduler    *JobScheduler
@@ -39,7 +42,7 @@ type NodeStateChangeListener interface {
 	notify(int)
 }
 
-func NewJobNode(id string, etcd *Etcd, dbUrl string) (node *JobNode, err error) {
+func NewJobNode(id string, etcd *etcd.Etcd, dbUrl string) (node *JobNode, err error) {
 
 	engine, err := xorm.NewEngine("mysql", dbUrl)
 	if err != nil {
@@ -132,7 +135,6 @@ func (node *JobNode) Bootstrap() {
 }
 
 func (node *JobNode) Close() {
-
 	node.close <- true
 }
 
@@ -151,22 +153,18 @@ func (node *JobNode) watchRegisterJobNode() {
 }
 
 // handle the register job node change event
-func (node *JobNode) handleRegisterJobNodeChangeEvent(changeEvent *KeyChangeEvent) {
+func (node *JobNode) handleRegisterJobNodeChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	switch changeEvent.Type {
-
-	case KeyCreateChangeEvent:
-
-	case KeyUpdateChangeEvent:
-
-	case KeyDeleteChangeEvent:
+	case etcdevent.KeyCreateChangeEvent:
+	case etcdevent.KeyUpdateChangeEvent:
+	case etcdevent.KeyDeleteChangeEvent:
 		log.Infof("found the job node:%s register to path:%s has lose", node.id, node.registerPath)
 		go node.loopRegisterJobNode()
-
 	}
 }
 
-func (node *JobNode) registerJobNode() (txResponse *TxResponse, err error) {
+func (node *JobNode) registerJobNode() (txResponse *etcdresponse.TxResponse, err error) {
 
 	return node.etcd.TxKeepaliveWithTTL(node.registerPath, node.id, TTL)
 }
@@ -177,7 +175,7 @@ func (node *JobNode) loopRegisterJobNode() {
 RETRY:
 
 	var (
-		txResponse *TxResponse
+		txResponse *etcdresponse.TxResponse
 		err        error
 	)
 	if txResponse, err = node.registerJobNode(); err != nil {
@@ -201,10 +199,8 @@ RETRY:
 }
 
 // elect the leader
-func (node *JobNode) elect() (txResponse *TxResponse, err error) {
-
+func (node *JobNode) elect() (txResponse *etcdresponse.TxResponse, err error) {
 	return node.etcd.TxKeepaliveWithTTL(node.electPath, node.id, TTL)
-
 }
 
 // watch the job node elect path
@@ -213,9 +209,7 @@ func (node *JobNode) watchElectPath() {
 	keyChangeEventResponse := node.etcd.Watch(node.electPath)
 
 	go func() {
-
 		for ch := range keyChangeEventResponse.Event {
-
 			node.handleElectLeaderChangeEvent(ch)
 		}
 	}()
@@ -223,16 +217,16 @@ func (node *JobNode) watchElectPath() {
 }
 
 // handle the job node leader change event
-func (node *JobNode) handleElectLeaderChangeEvent(changeEvent *KeyChangeEvent) {
+func (node *JobNode) handleElectLeaderChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	switch changeEvent.Type {
-
-	case KeyDeleteChangeEvent:
+	case etcdevent.KeyDeleteChangeEvent:
 		node.changeState(NodeFollowerState)
 		node.loopStartElect()
-	case KeyCreateChangeEvent:
 
-	case KeyUpdateChangeEvent:
+	case etcdevent.KeyCreateChangeEvent:
+
+	case etcdevent.KeyUpdateChangeEvent:
 
 	}
 
@@ -243,7 +237,7 @@ func (node *JobNode) loopStartElect() {
 
 RETRY:
 	var (
-		txResponse *TxResponse
+		txResponse *etcdresponse.TxResponse
 		err        error
 	)
 	if txResponse, err = node.elect(); err != nil {

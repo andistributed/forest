@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/admpub/log"
+	"github.com/andistributed/etcd/etcdevent"
 )
 
 const (
@@ -32,7 +33,6 @@ func (manager *JobManager) watchJobConfPath() {
 	keyChangeEventResponse := manager.node.etcd.WatchWithPrefixKey(JobConfPath)
 
 	for ch := range keyChangeEventResponse.Event {
-
 		manager.handleJobConfChangeEvent(ch)
 	}
 }
@@ -69,20 +69,17 @@ RETRY:
 
 }
 
-func (manager *JobManager) handleJobConfChangeEvent(changeEvent *KeyChangeEvent) {
+func (manager *JobManager) handleJobConfChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	switch changeEvent.Type {
-
-	case KeyCreateChangeEvent:
-
+	case etcdevent.KeyCreateChangeEvent:
 		manager.handleJobCreateEvent(changeEvent.Value)
-	case KeyUpdateChangeEvent:
 
+	case etcdevent.KeyUpdateChangeEvent:
 		manager.handleJobUpdateEvent(changeEvent.Value)
-	case KeyDeleteChangeEvent:
 
+	case etcdevent.KeyDeleteChangeEvent:
 		manager.handleJobDeleteEvent(changeEvent.Key)
-
 	}
 }
 
@@ -158,7 +155,7 @@ func (manager *JobManager) handleJobDeleteEvent(key string) {
 
 }
 
-// add job conf
+// AddJob add job conf
 func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 
 	var (

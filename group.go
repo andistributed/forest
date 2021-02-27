@@ -2,13 +2,13 @@ package forest
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/admpub/log"
+	"github.com/andistributed/etcd/etcdevent"
 	"github.com/coreos/etcd/clientv3"
 )
 
@@ -118,21 +118,21 @@ func (mgr *JobGroupManager) deleteGroup(path string) {
 }
 
 // handle the group change event
-func (mgr *JobGroupManager) handleGroupChangeEvent(changeEvent *KeyChangeEvent) {
+func (mgr *JobGroupManager) handleGroupChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	switch changeEvent.Type {
-
-	case KeyCreateChangeEvent:
+	case etcdevent.KeyCreateChangeEvent:
 		mgr.handleGroupCreateEvent(changeEvent)
 
-	case KeyUpdateChangeEvent:
+	case etcdevent.KeyUpdateChangeEvent:
 		// ignore
-	case KeyDeleteChangeEvent:
+
+	case etcdevent.KeyDeleteChangeEvent:
 		mgr.handleGroupDeleteEvent(changeEvent)
 	}
 }
 
-func (mgr *JobGroupManager) handleGroupCreateEvent(changeEvent *KeyChangeEvent) {
+func (mgr *JobGroupManager) handleGroupCreateEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	groupConf, err := UnpackGroupConf(changeEvent.Value)
 	if err != nil {
@@ -145,7 +145,7 @@ func (mgr *JobGroupManager) handleGroupCreateEvent(changeEvent *KeyChangeEvent) 
 
 }
 
-func (mgr *JobGroupManager) handleGroupDeleteEvent(changeEvent *KeyChangeEvent) {
+func (mgr *JobGroupManager) handleGroupDeleteEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	path := changeEvent.Key
 
@@ -160,7 +160,7 @@ func (mgr *JobGroupManager) selectClient(name string) (client *Client, err error
 	)
 
 	if group, ok = mgr.groups[GroupConfPath+name]; !ok {
-		err = errors.New(fmt.Sprintf("the group:%s not found", name))
+		err = fmt.Errorf("the group: %s not found", name)
 		return
 	}
 
@@ -247,18 +247,18 @@ RETRY:
 }
 
 // handle the client change event
-func (group *Group) handleClientChangeEvent(changeEvent *KeyChangeEvent) {
+func (group *Group) handleClientChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
 
 	switch changeEvent.Type {
 
-	case KeyCreateChangeEvent:
+	case etcdevent.KeyCreateChangeEvent:
 		path := changeEvent.Key
 		name := string(changeEvent.Value)
 		group.addClient(name, path)
 
-	case KeyUpdateChangeEvent:
+	case etcdevent.KeyUpdateChangeEvent:
 		//ignore
-	case KeyDeleteChangeEvent:
+	case etcdevent.KeyDeleteChangeEvent:
 		path := changeEvent.Key
 		group.deleteClient(path)
 	}

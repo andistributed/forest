@@ -74,7 +74,7 @@ RETRY:
 		from := string(keys[pos])
 		value := string(values[pos])
 		//  transfer the kv
-		if success, _ = f.node.etcd.transfer(from, to, value); success {
+		if success, _ = f.node.etcd.Transfer(from, to, value); success {
 			log.Infof("the fail client:%v for path:%s success transfer form %s to %s", event.Client, prefixKey, from, to)
 		}
 
