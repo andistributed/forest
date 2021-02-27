@@ -57,7 +57,7 @@ RETRY:
 	for i := 0; i < len(keys); i++ {
 		jobConf, err := UnpackJobConf(values[i])
 		if err != nil {
-			log.Warnf("upark the job conf error:%#v", err)
+			log.Warnf("unpack the job conf error: %#v", err)
 			continue
 		}
 		manager.node.scheduler.pushJobChangeEvent(&JobChangeEvent{
