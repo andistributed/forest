@@ -23,7 +23,6 @@ type JobNode struct {
 	electPath    string
 	etcd         *Etcd
 	state        int
-	api          *JobAPI
 	manager      *JobManager
 	scheduler    *JobScheduler
 	groupManager *JobGroupManager
