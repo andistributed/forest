@@ -7,6 +7,7 @@ import (
 	"github.com/admpub/log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
+	"github.com/webx-top/echo/engine"
 )
 
 const (
@@ -22,8 +23,7 @@ type JobNode struct {
 	electPath    string
 	etcd         *Etcd
 	state        int
-	apiAddress   string
-	api          *JobAPi
+	api          *JobAPI
 	manager      *JobManager
 	scheduler    *JobScheduler
 	groupManager *JobGroupManager
@@ -40,7 +40,7 @@ type NodeStateChangeListener interface {
 	notify(int)
 }
 
-func NewJobNode(id string, etcd *Etcd, httpAddress, dbUrl string, auth *ApiAuth) (node *JobNode, err error) {
+func NewJobNode(id string, etcd *Etcd, dbUrl string) (node *JobNode, err error) {
 
 	engine, err := xorm.NewEngine("mysql", dbUrl)
 	if err != nil {
@@ -53,7 +53,6 @@ func NewJobNode(id string, etcd *Etcd, httpAddress, dbUrl string, auth *ApiAuth)
 		electPath:    JobNodeElectPath,
 		etcd:         etcd,
 		state:        NodeFollowerState,
-		apiAddress:   httpAddress,
 		close:        make(chan bool),
 		engine:       engine,
 		listeners:    make([]NodeStateChangeListener, 0),
@@ -75,10 +74,13 @@ func NewJobNode(id string, etcd *Etcd, httpAddress, dbUrl string, auth *ApiAuth)
 	// create job manager
 	node.manager = NewJobManager(node)
 
-	// create a job http api
-	node.api = NewJobAPi(node, auth)
-
 	return
+}
+
+// StartAPIServer create a job http api and start service
+func (node *JobNode) StartAPIServer(auth *ApiAuth, address string, opts ...engine.ConfigSetter) {
+	api := NewJobAPi(node, auth)
+	api.Start(address, opts...)
 }
 
 func (node *JobNode) addListeners() {

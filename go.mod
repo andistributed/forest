@@ -38,8 +38,8 @@ require (
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/webx-top/captcha v0.0.0-20161202061115-29e9e7f30aa0 // indirect
-	github.com/webx-top/com v0.0.7 // indirect
-	github.com/webx-top/echo v2.7.8+incompatible
+	github.com/webx-top/com v0.0.7
+	github.com/webx-top/echo v2.7.9+incompatible
 	github.com/webx-top/tagfast v0.0.0-20161020041435-9a2065ce3dd2 // indirect
 	github.com/webx-top/validation v0.0.1 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
