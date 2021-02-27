@@ -34,7 +34,6 @@ func NewJobScheduler(node *JobNode) (sch *JobScheduler) {
 
 // handle the job change event
 func (sch *JobScheduler) handleJobChangeEvent(event *JobChangeEvent) {
-
 	sch.lk.Lock()
 	defer sch.lk.Unlock()
 	switch event.Type {
@@ -49,9 +48,7 @@ func (sch *JobScheduler) handleJobChangeEvent(event *JobChangeEvent) {
 
 // handle the job create event
 func (sch *JobScheduler) handleJobCreateEvent(event *JobChangeEvent) {
-
 	sch.createJobPlan(event)
-
 }
 
 // handle the job update event
@@ -79,14 +76,13 @@ func (sch *JobScheduler) handleJobUpdateEvent(event *JobChangeEvent) {
 
 	// stop must delete from the job schedule plan list
 	if jobConf.Status == JobStopStatus {
-
-		log.Warnf("the job conf:%#v status is stop must delete from the schedule plan ", jobConf)
+		log.Warnf("the job conf: %#v status is stop must delete from the schedule plan", jobConf)
 		delete(sch.schedulePlans, jobConf.Id)
 		return
 	}
 
 	if schedule, err = cron.Parse(jobConf.Cron); err != nil {
-		log.Errorf("the job conf:%#v  parse the cron error:%#v", jobConf, err)
+		log.Errorf("the job conf: %#v parse the cron error: %#v", jobConf, err)
 		return
 	}
 
@@ -128,7 +124,7 @@ func (sch *JobScheduler) handleJobDeleteEvent(event *JobChangeEvent) {
 		log.Warnf("the job conf: %#v version: %d <  schedule plan: %#v, version: %d", jobConf, jobConf.Version, plan, plan.Version)
 		return
 	}
-	log.Warnf("the job conf: %#v delete a  schedule plan: %#v", jobConf, plan)
+	log.Warnf("the job conf: %#v delete a schedule plan: %#v", jobConf, plan)
 	delete(sch.schedulePlans, jobConf.Id)
 
 }
@@ -179,7 +175,6 @@ func (sch *JobScheduler) createJobPlan(event *JobChangeEvent) {
 
 // push a job change event
 func (sch *JobScheduler) pushJobChangeEvent(event *JobChangeEvent) {
-
 	sch.eventChan <- event
 }
 
@@ -191,11 +186,9 @@ func (sch *JobScheduler) loopSchedule() {
 	for {
 
 		select {
-
 		case <-timer.C:
 
 		case event := <-sch.eventChan:
-
 			sch.handleJobChangeEvent(event)
 		}
 
@@ -208,12 +201,10 @@ func (sch *JobScheduler) loopSchedule() {
 
 // try schedule the job
 func (sch *JobScheduler) trySchedule() time.Duration {
-
 	var (
 		first bool
 	)
 	if len(sch.schedulePlans) == 0 {
-
 		return time.Second
 	}
 
@@ -221,7 +212,6 @@ func (sch *JobScheduler) trySchedule() time.Duration {
 	leastTime := new(time.Time)
 	first = true
 	for _, plan := range sch.schedulePlans {
-
 		scheduleTime := plan.NextTime
 		if scheduleTime.Before(now) && sch.node.state == NodeLeaderState {
 			log.Infof("schedule execute the plan: %#v", plan)
@@ -252,14 +242,12 @@ func (sch *JobScheduler) trySchedule() time.Duration {
 
 		// check least time after next schedule  time
 		if leastTime.After(nextTime) {
-
 			leastTime = &nextTime
 		}
 
 	}
 
 	if leastTime.Before(now) {
-
 		return time.Second
 	}
 
@@ -274,7 +262,6 @@ func (sch *JobScheduler) loopSync() {
 	for {
 
 		select {
-
 		case <-timer.C:
 			sch.trySync()
 		}
@@ -318,14 +305,11 @@ func (sch *JobScheduler) trySync() {
 
 	// sync job conf
 	for _, conf := range jobConfs {
-
 		sch.handleJobConfSync(conf)
-
 	}
 
 	// sync not receive the job conf delete event
 	for id, plan := range sch.schedulePlans {
-
 		if !sch.existPlan(id, jobConfs) {
 			log.Warnf("sync the schedule plan %v must delete", plan)
 			delete(sch.schedulePlans, id)
