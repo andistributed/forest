@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/admpub/log"
+	"github.com/andistributed/etcd/etcdevent"
 )
 
 // collection job execute status
@@ -46,7 +47,7 @@ func (c *JobCollection) watch() {
 }
 
 // handle the job execute status
-func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *KeyChangeEvent) {
+func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *etcdevent.KeyChangeEvent) {
 
 	if c.node.state == NodeFollowerState {
 		return
@@ -54,7 +55,7 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *KeyChangeEv
 
 	switch event.Type {
 
-	case KeyCreateChangeEvent:
+	case etcdevent.KeyCreateChangeEvent:
 
 		if len(event.Value) == 0 {
 			return
@@ -69,7 +70,7 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *KeyChangeEv
 		}
 		c.handleJobExecuteSnapshot(event.Key, executeSnapshot)
 
-	case KeyUpdateChangeEvent:
+	case etcdevent.KeyUpdateChangeEvent:
 
 		if len(event.Value) == 0 {
 			return
@@ -84,7 +85,7 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *KeyChangeEv
 
 		c.handleJobExecuteSnapshot(event.Key, executeSnapshot)
 
-	case KeyDeleteChangeEvent:
+	case etcdevent.KeyDeleteChangeEvent:
 
 	}
 }

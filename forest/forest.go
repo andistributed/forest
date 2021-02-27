@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/admpub/securecookie"
+	"github.com/andistributed/etcd"
+	"github.com/andistributed/etcd/etcdconfig"
 	"github.com/andistributed/forest"
-	"github.com/andistributed/forest/etcd"
-	"github.com/coreos/etcd/clientv3"
 	"github.com/prometheus/common/log"
 	"github.com/webx-top/com"
 	"github.com/webx-top/echo/engine"
@@ -68,11 +68,11 @@ func main() {
 
 	endpoint := strings.Split(*etcdEndpoints, ",")
 	dialTime := time.Duration(*etcdDialTime) * time.Second
-	var etcdOpts []func(*clientv3.Config)
+	var etcdOpts []etcdconfig.Configer
 	if len(*etcdCertFile) > 0 && len(*etcdKeyFile) > 0 {
-		etcdOpts = append(etcdOpts, etcd.TLSFile(*etcdCertFile, *etcdKeyFile))
+		etcdOpts = append(etcdOpts, etcdconfig.TLSFile(*etcdCertFile, *etcdKeyFile))
 	}
-	etcd, err := forest.NewEtcd(endpoint, dialTime, etcdOpts...)
+	etcd, err := etcd.New(endpoint, dialTime, etcdOpts...)
 	if err != nil {
 		log.Fatal(err)
 	}
