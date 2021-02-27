@@ -10,6 +10,7 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/robfig/cron"
 	"github.com/webx-top/echo"
+	"github.com/webx-top/echo/engine"
 	"github.com/webx-top/echo/engine/standard"
 	"github.com/webx-top/echo/middleware"
 	mwjwt "github.com/webx-top/echo/middleware/jwt"
@@ -21,14 +22,14 @@ type ApiAuth struct {
 	JWTKey string
 }
 
-type JobAPi struct {
+type JobAPI struct {
 	node *JobNode
 	echo *echo.Echo
 	auth *ApiAuth
 }
 
-func NewJobAPi(node *JobNode, auth *ApiAuth) (api *JobAPi) {
-	api = &JobAPi{
+func NewJobAPi(node *JobNode, auth *ApiAuth) (api *JobAPI) {
+	api = &JobAPI{
 		node: node,
 		auth: auth,
 	}
@@ -79,16 +80,17 @@ func NewJobAPi(node *JobNode, auth *ApiAuth) (api *JobAPi) {
 	e.Post("/snapshot/list", api.snapshotList)
 	e.Post("/snapshot/delete", api.snapshotDelete)
 	e.Post("/execute/snapshot/list", api.executeSnapshotList)
-	go func() {
-		e.Logger().Fatal(e.Run(standard.New(node.apiAddress)))
-	}()
 	api.echo = e
 	return
 }
 
+func (e *JobAPI) Start(addr string, opts ...engine.ConfigSetter) {
+	e.echo.Logger().Fatal(e.echo.Run(standard.New(addr, opts...)))
+}
+
 const sessionKey = `user`
 
-func (api *JobAPi) login(context echo.Context) (err error) {
+func (api *JobAPI) login(context echo.Context) (err error) {
 	var (
 		message string
 		signed  string
@@ -137,13 +139,13 @@ ERROR:
 	return context.JSON(Result{Code: -1, Message: message})
 }
 
-func (api *JobAPi) logout(context echo.Context) (err error) {
+func (api *JobAPI) logout(context echo.Context) (err error) {
 	context.Session().Delete(sessionKey)
 	return context.JSON(Result{Code: 0, Message: "登出成功"})
 }
 
 // add a new job
-func (api *JobAPi) addJob(context echo.Context) (err error) {
+func (api *JobAPI) addJob(context echo.Context) (err error) {
 	var (
 		message string
 	)
@@ -194,7 +196,7 @@ ERROR:
 }
 
 // edit a job
-func (api *JobAPi) editJob(context echo.Context) (err error) {
+func (api *JobAPI) editJob(context echo.Context) (err error) {
 	var (
 		message string
 	)
@@ -249,7 +251,7 @@ ERROR:
 }
 
 // job  list
-func (api *JobAPi) jobList(context echo.Context) (err error) {
+func (api *JobAPI) jobList(context echo.Context) (err error) {
 
 	var (
 		jobConfs []*JobConf
@@ -263,7 +265,7 @@ func (api *JobAPi) jobList(context echo.Context) (err error) {
 }
 
 // delete a job
-func (api *JobAPi) deleteJob(context echo.Context) (err error) {
+func (api *JobAPI) deleteJob(context echo.Context) (err error) {
 
 	var (
 		message string
@@ -292,7 +294,7 @@ ERROR:
 }
 
 // add a job group
-func (api *JobAPi) addGroup(context echo.Context) (err error) {
+func (api *JobAPI) addGroup(context echo.Context) (err error) {
 
 	var (
 		message string
@@ -326,7 +328,7 @@ ERROR:
 }
 
 // edit a job group
-func (api *JobAPi) editGroup(context echo.Context) (err error) {
+func (api *JobAPI) editGroup(context echo.Context) (err error) {
 
 	var (
 		message string
@@ -360,7 +362,7 @@ ERROR:
 }
 
 // delete a group
-func (api *JobAPi) deleteGroup(context echo.Context) (err error) {
+func (api *JobAPI) deleteGroup(context echo.Context) (err error) {
 
 	var (
 		message string
@@ -389,7 +391,7 @@ ERROR:
 }
 
 // job group list
-func (api *JobAPi) groupList(context echo.Context) (err error) {
+func (api *JobAPI) groupList(context echo.Context) (err error) {
 
 	var (
 		groupConfs []*GroupConf
@@ -403,7 +405,7 @@ func (api *JobAPi) groupList(context echo.Context) (err error) {
 }
 
 // job node list
-func (api *JobAPi) nodeList(context echo.Context) (err error) {
+func (api *JobAPI) nodeList(context echo.Context) (err error) {
 
 	var (
 		nodes     []*Node
@@ -439,7 +441,7 @@ func (api *JobAPi) nodeList(context echo.Context) (err error) {
 
 }
 
-func (api *JobAPi) planList(context echo.Context) (err error) {
+func (api *JobAPI) planList(context echo.Context) (err error) {
 
 	var (
 		plans []*SchedulePlan
@@ -462,7 +464,7 @@ func (api *JobAPi) planList(context echo.Context) (err error) {
 	return context.JSON(Result{Code: 0, Data: plans})
 }
 
-func (api *JobAPi) clientList(context echo.Context) (err error) {
+func (api *JobAPI) clientList(context echo.Context) (err error) {
 
 	var (
 		query     *QueryClientParam
@@ -502,7 +504,7 @@ ERROR:
 }
 
 // 任务快照
-func (api *JobAPi) snapshotList(context echo.Context) (err error) {
+func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 
 	var (
 		query     *QuerySnapshotParam
@@ -561,7 +563,7 @@ ERROR:
 }
 
 // 任务删除任务快照
-func (api *JobAPi) snapshotDelete(context echo.Context) (err error) {
+func (api *JobAPI) snapshotDelete(context echo.Context) (err error) {
 
 	var (
 		query   *QuerySnapshotParam
@@ -592,7 +594,7 @@ ERROR:
 	return context.JSON(Result{Code: -1, Message: message})
 }
 
-func (api *JobAPi) executeSnapshotList(context echo.Context) (err error) {
+func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 	var (
 		query      *QueryExecuteSnapshotParam
@@ -673,7 +675,7 @@ ERROR:
 }
 
 // manual execute
-func (api *JobAPi) manualExecute(context echo.Context) (err error) {
+func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 
 	var (
 		conf         *JobConf
