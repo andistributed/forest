@@ -19,42 +19,37 @@ func GenerateSerialNo() string {
 }
 
 func ToDateString(date time.Time) string {
-
 	return date.Format("2006-01-02 15:04:05")
 }
-func PackJobConf(jobConf *JobConf) (value []byte, err error) {
 
+func PackJobConf(jobConf *JobConf) (value []byte, err error) {
 	value, err = json.Marshal(jobConf)
 	return
 }
-func UnpackJobConf(value []byte) (jobConf *JobConf, err error) {
 
+func UnpackJobConf(value []byte) (jobConf *JobConf, err error) {
 	jobConf = new(JobConf)
 	err = json.Unmarshal(value, jobConf)
 	return
 }
 
 func PackGroupConf(groupConf *GroupConf) (value []byte, err error) {
-
 	value, err = json.Marshal(groupConf)
 	return
 }
 
 func UnpackGroupConf(value []byte) (groupConf *GroupConf, err error) {
-
 	groupConf = new(GroupConf)
 	err = json.Unmarshal(value, groupConf)
 	return
 }
 
 func PackJobSnapshot(snapshot *JobSnapshot) (value []byte, err error) {
-
 	value, err = json.Marshal(snapshot)
 	return
 }
 
 func UnpackJobSnapshot(value []byte) (snapshot *JobSnapshot, err error) {
-
 	snapshot = new(JobSnapshot)
 	err = json.Unmarshal(value, snapshot)
 	return
@@ -63,18 +58,15 @@ func UnpackJobSnapshot(value []byte) (snapshot *JobSnapshot, err error) {
 func PackJobExecuteSnapshot(snapshot *JobExecuteSnapshot) (value []byte, err error) {
 	value, err = json.Marshal(snapshot)
 	return
-
 }
 
 func UnpackJobExecuteSnapshot(value []byte) (snapshot *JobExecuteSnapshot, err error) {
-
 	snapshot = new(JobExecuteSnapshot)
 	err = json.Unmarshal(value, snapshot)
 	return
 }
 
 func GetLocalIpAddress() (ip string) {
-
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		log.Warnf("err:%#v", err)
@@ -94,7 +86,6 @@ func GetLocalIpAddress() (ip string) {
 }
 
 func TimeSubDays(t1, t2 time.Time) int {
-
 	if t1.Location().String() != t2.Location().String() {
 		return -1
 	}
@@ -114,7 +105,6 @@ func TimeSubDays(t1, t2 time.Time) int {
 			return 0
 		}
 		return 1
-
 	}
 	// equal or more than 24
 	if (hours/24)-float64(int(hours/24)) == 0 { // just 24's times
@@ -122,11 +112,9 @@ func TimeSubDays(t1, t2 time.Time) int {
 	}
 	// more than 24 hours
 	return int(hours/24) + 1
-
 }
 
 func ParseInLocation(value string) (dateTime time.Time, err error) {
-
 	dateTime, err = time.Parse("2006-01-02 15:04:05", value)
 	return
 }

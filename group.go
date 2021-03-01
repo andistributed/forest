@@ -105,7 +105,6 @@ func (mgr *JobGroupManager) deleteGroup(path string) {
 	defer mgr.lk.Unlock()
 
 	if group, ok = mgr.groups[path]; ok {
-
 		return
 	}
 
@@ -205,9 +204,7 @@ func (group *Group) watchClientPath() {
 	group.watcher = keyChangeEventResponse.Watcher
 	group.cancelFunc = keyChangeEventResponse.CancelFunc
 	for ch := range keyChangeEventResponse.Event {
-
 		group.handleClientChangeEvent(ch)
-
 	}
 
 }
