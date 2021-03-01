@@ -260,8 +260,7 @@ func (api *JobAPI) jobList(context echo.Context) (err error) {
 	if jobConfs, err = api.node.manager.jobList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
-	return context.JSON(Result{Code: 0, Data: jobConfs, Message: "查询成成功"})
-
+	return context.JSON(Result{Code: 0, Data: jobConfs, Message: "查询成功"})
 }
 
 // delete a job
@@ -270,9 +269,9 @@ func (api *JobAPI) deleteJob(context echo.Context) (err error) {
 	var (
 		message string
 	)
+
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
-
 		message = "请求参数不能为空"
 		goto ERROR
 	}
@@ -299,9 +298,9 @@ func (api *JobAPI) addGroup(context echo.Context) (err error) {
 	var (
 		message string
 	)
+
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
-
 		message = "请求参数不能为空"
 		goto ERROR
 	}
@@ -333,9 +332,9 @@ func (api *JobAPI) editGroup(context echo.Context) (err error) {
 	var (
 		message string
 	)
+
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
-
 		message = "请求参数不能为空"
 		goto ERROR
 	}
@@ -367,9 +366,9 @@ func (api *JobAPI) deleteGroup(context echo.Context) (err error) {
 	var (
 		message string
 	)
+
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
-
 		message = "请求参数不能为空"
 		goto ERROR
 	}
@@ -400,8 +399,7 @@ func (api *JobAPI) groupList(context echo.Context) (err error) {
 	if groupConfs, err = api.node.manager.groupList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
-	return context.JSON(Result{Code: 0, Data: groupConfs, Message: "查询成成功"})
-
+	return context.JSON(Result{Code: 0, Data: groupConfs, Message: "查询成功"})
 }
 
 // job node list
@@ -422,7 +420,7 @@ func (api *JobAPI) nodeList(context echo.Context) (err error) {
 	}
 
 	if len(nodeNames) == 0 {
-		return context.JSON(Result{Code: 0, Data: nodes, Message: "查询成成功"})
+		return context.JSON(Result{Code: 0, Data: nodes, Message: "查询成功"})
 	}
 
 	nodes = make([]*Node, 0)
@@ -437,8 +435,7 @@ func (api *JobAPI) nodeList(context echo.Context) (err error) {
 
 	}
 
-	return context.JSON(Result{Code: 0, Data: nodes, Message: "查询成成功"})
-
+	return context.JSON(Result{Code: 0, Data: nodes, Message: "查询成功"})
 }
 
 func (api *JobAPI) planList(context echo.Context) (err error) {
@@ -446,19 +443,16 @@ func (api *JobAPI) planList(context echo.Context) (err error) {
 	var (
 		plans []*SchedulePlan
 	)
+
 	schedulePlans := api.node.scheduler.schedulePlans
 	if len(schedulePlans) == 0 {
-
 		return context.JSON(Result{Code: 0, Data: plans})
-
 	}
 
 	plans = make([]*SchedulePlan, 0)
 
 	for _, p := range schedulePlans {
-
 		plans = append(plans, p)
-
 	}
 
 	return context.JSON(Result{Code: 0, Data: plans})
@@ -484,6 +478,7 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 		message = "请选择任务集群"
 		goto ERROR
 	}
+
 	groupPath = fmt.Sprintf("%s%s", GroupConfPath, query.Group)
 	if group = api.node.groupManager.groups[groupPath]; group == nil {
 		message = "此任务集群不存在"
@@ -493,11 +488,10 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 	clients = make([]*JobClient, 0)
 
 	for _, c := range group.clients {
-
 		clients = append(clients, &JobClient{Name: c.name, Path: c.path, Group: query.Group})
 	}
 
-	return context.JSON(Result{Code: 0, Data: clients, Message: "查询成成功"})
+	return context.JSON(Result{Code: 0, Data: clients, Message: "查询成功"})
 
 ERROR:
 	return context.JSON(Result{Code: -1, Message: message})
@@ -538,7 +532,7 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 
 	snapshots = make([]*JobSnapshot, 0)
 	if len(keys) == 0 {
-		return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成成功"})
+		return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成功"})
 	}
 
 	for _, value := range values {
@@ -546,6 +540,7 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		if len(value) == 0 {
 			continue
 		}
+
 		var snapshot *JobSnapshot
 
 		if snapshot, err = UnpackJobSnapshot(value); err != nil {
@@ -553,10 +548,9 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		}
 
 		snapshots = append(snapshots, snapshot)
-
 	}
 
-	return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成成功"})
+	return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成功"})
 
 ERROR:
 	return context.JSON(Result{Code: -1, Message: message})
@@ -605,6 +599,7 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 		where      *xorm.Session
 		queryWhere *xorm.Session
 	)
+
 	query = new(QueryExecuteSnapshotParam)
 	if err = context.MustBind(query); err != nil {
 		message = "非法的请求参数"
@@ -627,13 +622,11 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 		queryWhere.And("id=?", query.Id)
 	}
 	if query.Group != "" {
-
 		where.And("`group`=?", query.Group)
 		queryWhere.And("`group`=?", query.Group)
 	}
 
 	if query.Ip != "" {
-
 		where.And("ip=?", query.Ip)
 		queryWhere.And("ip=?", query.Ip)
 	}
@@ -667,11 +660,10 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 	}
 
-	return context.JSON(Result{Code: 0, Data: &PageResult{TotalCount: int(count), TotalPage: int(totalPage), List: &snapshots}, Message: "查询成成功"})
+	return context.JSON(Result{Code: 0, Data: &PageResult{TotalCount: int(count), TotalPage: int(totalPage), List: &snapshots}, Message: "查询成功"})
 
 ERROR:
 	return context.JSON(Result{Code: -1, Message: message})
-
 }
 
 // manual execute
@@ -689,12 +681,10 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 	conf = new(JobConf)
 	if err = context.MustBind(conf); err != nil {
 		return context.JSON(Result{Code: -1, Message: "非法的参数"})
-
 	}
 
 	// 检查任务配置id是否存在
 	if conf.Id == "" {
-
 		return context.JSON(Result{Code: -1, Message: "此任务配置不存在"})
 	}
 
@@ -705,7 +695,6 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 
 	// 任务配置是否为空
 	if len(value) == 0 {
-
 		return context.JSON(Result{Code: -1, Message: "此任务配置内容为空"})
 	}
 
@@ -715,7 +704,7 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 
 	// select a execute  job client for group
 	if client, err = api.node.groupManager.selectClient(conf.Group); err != nil {
-		return context.JSON(Result{Code: -1, Message: "没有找到此要执行的任务作业节点"})
+		return context.JSON(Result{Code: -1, Message: "没有找到可以执行此任务的作业节点"})
 	}
 
 	// build the job snapshot path
@@ -739,7 +728,6 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 
 	// park the job snapshot
 	if value, err = PackJobSnapshot(snapshot); err != nil {
-
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
 
@@ -749,10 +737,8 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 	}
 
 	if !success {
-
 		return context.JSON(Result{Code: -1, Message: "手动执行任务失败,请重试"})
 	}
 
 	return context.JSON(Result{Code: 0, Message: "手动执行任务请求已提交"})
-
 }
