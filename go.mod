@@ -18,12 +18,13 @@ require (
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.9
+	github.com/goccy/go-json v0.4.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/prometheus/common v0.7.0
 	github.com/robfig/cron v1.2.0
 	github.com/webx-top/captcha v0.0.0-20161202061115-29e9e7f30aa0 // indirect
-	github.com/webx-top/com v0.0.7
-	github.com/webx-top/echo v2.7.9+incompatible
+	github.com/webx-top/com v0.1.2
+	github.com/webx-top/echo v2.8.3+incompatible
 	github.com/webx-top/tagfast v0.0.0-20161020041435-9a2065ce3dd2 // indirect
 	github.com/webx-top/validation v0.0.1 // indirect
 )
