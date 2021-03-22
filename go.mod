@@ -9,10 +9,10 @@ require (
 	github.com/admpub/fsnotify v1.4.4 // indirect
 	github.com/admpub/go-reuseport v0.0.3 // indirect
 	github.com/admpub/humanize v0.0.0-20190501023926-5f826e92c8ca // indirect
-	github.com/admpub/log v0.0.1
+	github.com/admpub/log v0.1.1
 	github.com/admpub/securecookie v0.0.0-20170722041919-69560e375596
 	github.com/admpub/sessions v0.0.0-20201215083847-1f34ca1aac1e // indirect
-	github.com/andistributed/etcd v0.0.2
+	github.com/andistributed/etcd v0.0.3
 	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/francoispqt/gojay v1.2.13 // indirect
