@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/admpub/log"
 	"github.com/admpub/securecookie"
 	"github.com/andistributed/etcd"
 	"github.com/andistributed/etcd/etcdconfig"
 	"github.com/andistributed/forest"
-	"github.com/prometheus/common/log"
 	"github.com/webx-top/com"
 	"github.com/webx-top/echo/engine"
 )
@@ -34,9 +34,11 @@ var (
 
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root
 func main() {
+	log.SetFatalAction(log.ActionPanic)
+	defer log.Close()
 
 	ip := forest.GetLocalIpAddress()
-	if ip == "" {
+	if len(ip) == 0 {
 		log.Fatal("has no get the ip address")
 	}
 

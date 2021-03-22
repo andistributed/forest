@@ -20,7 +20,6 @@ require (
 	github.com/go-xorm/xorm v0.7.9
 	github.com/goccy/go-json v0.4.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/prometheus/common v0.7.0
 	github.com/robfig/cron v1.2.0
 	github.com/webx-top/captcha v0.0.0-20161202061115-29e9e7f30aa0 // indirect
 	github.com/webx-top/com v0.1.2
