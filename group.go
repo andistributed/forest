@@ -9,7 +9,7 @@ import (
 
 	"github.com/admpub/log"
 	"github.com/andistributed/etcd/etcdevent"
-	"github.com/coreos/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 const (
@@ -70,7 +70,7 @@ RETRY:
 		path := string(keys[i])
 		groupConf, err := UnpackGroupConf(values[i])
 		if err != nil {
-			log.Warnf("upark the group conf error:%#v", err)
+			log.Warnf("unpack the group conf error: %#v", err)
 			continue
 		}
 
@@ -90,7 +90,7 @@ func (mgr *JobGroupManager) addGroup(name, path string) {
 	}
 	group := NewGroup(name, path, mgr.node)
 	mgr.groups[path] = group
-	log.Infof("add a new group:%s,for path:%s", name, path)
+	log.Infof("add a new group: %s, for path: %s", name, path)
 
 }
 
@@ -113,7 +113,7 @@ func (mgr *JobGroupManager) deleteGroup(path string) {
 	group.cancelFunc()
 	delete(mgr.groups, path)
 
-	log.Infof("delete a  group:%s,for path:%s", group.name, path)
+	log.Infof("delete a group: %s, for path: %s", group.name, path)
 }
 
 // handle the group change event
@@ -135,7 +135,7 @@ func (mgr *JobGroupManager) handleGroupCreateEvent(changeEvent *etcdevent.KeyCha
 
 	groupConf, err := UnpackGroupConf(changeEvent.Value)
 	if err != nil {
-		log.Warnf("upark the group conf error:%#v", err)
+		log.Warnf("unpack the group conf error: %#v", err)
 		return
 	}
 
@@ -234,7 +234,7 @@ RETRY:
 		path := string(keys[i])
 		value := string(values[i])
 		if value == "" {
-			log.Warnf("the client value is nil for path:%s", path)
+			log.Warnf("the client value is nil for path: %s", path)
 			continue
 		}
 
@@ -267,7 +267,7 @@ func (group *Group) addClient(name, path string) {
 	group.lk.Lock()
 	defer group.lk.Unlock()
 	if _, ok := group.clients[path]; ok {
-		log.Warnf("name:%s,path:%s,the client exist", name, path)
+		log.Warnf("name: %s, path: %s, the client exist", name, path)
 		return
 	}
 

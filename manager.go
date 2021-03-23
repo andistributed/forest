@@ -118,7 +118,7 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 	}
 
 	if jobConf, err = UnpackJobConf(value); err != nil {
-		log.Errorf("unpack the job conf err:%#v", err)
+		log.Errorf("unpack the job conf err: %#v", err)
 		return
 	}
 
@@ -405,7 +405,7 @@ func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 
 		groupConf, err := UnpackGroupConf(values[i])
 		if err != nil {
-			log.Errorf("unpack the group conf errror:%#v", err)
+			log.Errorf("unpack the group conf errror: %#v", err)
 			continue
 		}
 

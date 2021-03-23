@@ -64,8 +64,8 @@ func (sch *JobScheduler) handleJobUpdateEvent(event *JobChangeEvent) {
 	jobConf := event.Conf
 
 	if _, ok = sch.schedulePlans[jobConf.Id]; !ok {
-		log.Warnf("the job conf:%#v not exist", jobConf)
-		log.Warnf("the job conf:%#v change job create event", jobConf)
+		log.Warnf("the job conf: %#v not exist", jobConf)
+		log.Warnf("the job conf: %#v change job create event", jobConf)
 
 		sch.createJobPlan(&JobChangeEvent{
 			Type: JobCreateChangeEvent,

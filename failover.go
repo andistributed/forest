@@ -52,13 +52,13 @@ func (f *JobSnapshotFailOver) handleJobClientDeleteEvent(event *JobClientDeleteE
 RETRY:
 	prefixKey := fmt.Sprintf(JobClientSnapshotPath, event.Group.name, event.Client.name)
 	if keys, values, err = f.node.etcd.GetWithPrefixKey(prefixKey); err != nil {
-		log.Errorf("the fail client:%v for path:%s,error must retry", event.Client, prefixKey)
+		log.Errorf("the fail client: %v for path: %s, error must retry", event.Client, prefixKey)
 		time.Sleep(time.Second)
 		goto RETRY
 	}
 
 	if len(keys) == 0 || len(values) == 0 {
-		log.Warnf("the fail client:%v for path:%s is empty", event.Client, prefixKey)
+		log.Warnf("the fail client: %v for path: %s is empty", event.Client, prefixKey)
 		return
 	}
 
@@ -75,7 +75,7 @@ RETRY:
 		value := string(values[pos])
 		//  transfer the kv
 		if success, _ = f.node.etcd.Transfer(from, to, value); success {
-			log.Infof("the fail client:%v for path:%s success transfer form %s to %s", event.Client, prefixKey, from, to)
+			log.Infof("the fail client: %v for path: %s success transfer form %s to %s", event.Client, prefixKey, from, to)
 		}
 
 	}

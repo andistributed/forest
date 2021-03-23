@@ -69,7 +69,7 @@ func UnpackJobExecuteSnapshot(value []byte) (snapshot *JobExecuteSnapshot, err e
 func GetLocalIpAddress() (ip string) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Warnf("err:%#v", err)
+		log.Warnf("err: %#v", err)
 		return
 	}
 	for _, value := range addrs {

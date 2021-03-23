@@ -112,13 +112,13 @@ func (node *JobNode) changeState(state int) {
 func (node *JobNode) initNode() {
 	txResponse, err := node.registerJobNode()
 	if err != nil {
-		log.Fatalf("the job node:%s, fail register to :%s", node.id, node.registerPath)
+		log.Fatalf("the job node: %s, fail register to: %s", node.id, node.registerPath)
 
 	}
 	if !txResponse.Success {
-		log.Fatalf("the job node:%s, fail register to :%s,the job node id exist ", node.id, node.registerPath)
+		log.Fatalf("the job node: %s, fail register to: %s,the job node id exist ", node.id, node.registerPath)
 	}
-	log.Infof("the job node:%s, success register to :%s", node.id, node.registerPath)
+	log.Infof("the job node: %s, success register to: %s", node.id, node.registerPath)
 	node.watchRegisterJobNode()
 	node.watchElectPath()
 	go node.loopStartElect()
@@ -159,7 +159,7 @@ func (node *JobNode) handleRegisterJobNodeChangeEvent(changeEvent *etcdevent.Key
 	case etcdevent.KeyCreateChangeEvent:
 	case etcdevent.KeyUpdateChangeEvent:
 	case etcdevent.KeyDeleteChangeEvent:
-		log.Infof("found the job node:%s register to path:%s has lose", node.id, node.registerPath)
+		log.Infof("found the job node: %s register to path: %s has lose", node.id, node.registerPath)
 		go node.loopRegisterJobNode()
 	}
 }
@@ -179,21 +179,21 @@ RETRY:
 		err        error
 	)
 	if txResponse, err = node.registerJobNode(); err != nil {
-		log.Infof("the job node:%s, fail register to :%s", node.id, node.registerPath)
+		log.Infof("the job node: %s, fail register to: %s", node.id, node.registerPath)
 		time.Sleep(time.Second)
 		goto RETRY
 	}
 
 	if txResponse.Success {
-		log.Infof("the job node:%s, success register to :%s", node.id, node.registerPath)
+		log.Infof("the job node: %s, success register to: %s", node.id, node.registerPath)
 	} else {
 
 		v := txResponse.Value
 		if v != node.id {
 			time.Sleep(time.Second)
-			log.Fatalf("the job node:%s,the other job node :%s has already  register to :%s", node.id, v, node.registerPath)
+			log.Fatalf("the job node: %s, the other job node: %s has already register to: %s", node.id, v, node.registerPath)
 		}
-		log.Infof("the job node:%s,has already success register to :%s", node.id, node.registerPath)
+		log.Infof("the job node: %s, has already success register to: %s", node.id, node.registerPath)
 	}
 
 }
@@ -241,21 +241,21 @@ RETRY:
 		err        error
 	)
 	if txResponse, err = node.elect(); err != nil {
-		log.Infof("the job node:%s, elect fail to :%s", node.id, node.electPath)
+		log.Infof("the job node: %s, elect fail to: %s", node.id, node.electPath)
 		time.Sleep(time.Second)
 		goto RETRY
 	}
 
 	if txResponse.Success {
 		node.changeState(NodeLeaderState)
-		log.Infof("the job node:%s, elect success to :%s", node.id, node.electPath)
+		log.Infof("the job node: %s, elect success to: %s", node.id, node.electPath)
 	} else {
 		v := txResponse.Value
 		if v != node.id {
-			log.Infof("the job node:%s,give up elect request because the other job node：%s elect to:%s", node.id, v, node.electPath)
+			log.Infof("the job node: %s, give up elect request because the other job node: %s elect to: %s", node.id, v, node.electPath)
 			node.changeState(NodeFollowerState)
 		} else {
-			log.Infof("the job node:%s, has already elect  success to :%s", node.id, node.electPath)
+			log.Infof("the job node: %s, has already elect  success to: %s", node.id, node.electPath)
 			node.changeState(NodeLeaderState)
 		}
 	}

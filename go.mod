@@ -2,6 +2,8 @@ module github.com/andistributed/forest
 
 go 1.16
 
+replace github.com/andistributed/etcd => ../etcd
+
 require (
 	github.com/admpub/copier v0.0.1 // indirect
 	github.com/admpub/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
@@ -13,7 +15,6 @@ require (
 	github.com/admpub/securecookie v0.0.0-20170722041919-69560e375596
 	github.com/admpub/sessions v0.0.0-20201215083847-1f34ca1aac1e // indirect
 	github.com/andistributed/etcd v0.1.0
-	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
@@ -26,4 +27,5 @@ require (
 	github.com/webx-top/echo v2.8.3+incompatible
 	github.com/webx-top/tagfast v0.0.0-20161020041435-9a2065ce3dd2 // indirect
 	github.com/webx-top/validation v0.0.1 // indirect
+	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0
 )

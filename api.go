@@ -639,7 +639,7 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 		queryWhere.And("`status`=?", query.Status)
 	}
 	if count, err = where.Count(&JobExecuteSnapshot{}); err != nil {
-		log.Errorf("err:%#v", err)
+		log.Errorf("err: %#v", err)
 		message = "查询失败"
 		goto ERROR
 	}
@@ -647,7 +647,7 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 	if count > 0 {
 		err = queryWhere.Desc("create_time").Limit(query.PageSize, (query.PageNo-1)*query.PageSize).Find(&snapshots)
 		if err != nil {
-			log.Errorf("err:%#v", err)
+			log.Errorf("err: %#v", err)
 			message = "查询失败"
 			goto ERROR
 		}

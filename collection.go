@@ -64,7 +64,7 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *etcdevent.K
 		executeSnapshot, err := UnpackJobExecuteSnapshot(event.Value)
 
 		if err != nil {
-			log.Warnf("UnpackJobExecuteSnapshot:%s fail,err:%#v ", event.Value, err)
+			log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", event.Value, err)
 			_ = c.node.etcd.Delete(event.Key)
 			return
 		}
@@ -79,7 +79,7 @@ func (c *JobCollection) handleJobExecuteStatusCollectionEvent(event *etcdevent.K
 		executeSnapshot, err := UnpackJobExecuteSnapshot(event.Value)
 
 		if err != nil {
-			log.Warnf("UnpackJobExecuteSnapshot:%s fail,err:%#v ", event.Value, err)
+			log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", event.Value, err)
 			return
 		}
 
@@ -188,15 +188,12 @@ func (c *JobCollection) loop() {
 			timer.Reset(10 * time.Second)
 			keys, values, err := c.node.etcd.GetWithPrefixKeyLimit(key, 1000)
 			if err != nil {
-
-				log.Warnf("collection loop err:%v ", err)
+				log.Warnf("collection loop err: %v", err)
 				continue
 			}
 
 			if len(keys) == 0 {
-
 				continue
-
 			}
 
 			for pos := 0; pos < len(keys); pos++ {
@@ -204,7 +201,7 @@ func (c *JobCollection) loop() {
 				executeSnapshot, err := UnpackJobExecuteSnapshot(values[pos])
 
 				if err != nil {
-					log.Warnf("UnpackJobExecuteSnapshot:%s fail,err:%#v ", values[pos], err)
+					log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", values[pos], err)
 					_ = c.node.etcd.Delete(string(keys[pos]))
 					continue
 				}
