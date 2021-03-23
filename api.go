@@ -7,8 +7,8 @@ import (
 
 	"github.com/admpub/log"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-xorm/xorm"
 	"github.com/robfig/cron"
+	"github.com/webx-top/db"
 	"github.com/webx-top/echo"
 	"github.com/webx-top/echo/engine"
 	"github.com/webx-top/echo/engine/standard"
@@ -591,13 +591,12 @@ ERROR:
 func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 	var (
-		query      *QueryExecuteSnapshotParam
-		message    string
-		count      int64
-		snapshots  []*JobExecuteSnapshot
-		totalPage  int64
-		where      *xorm.Session
-		queryWhere *xorm.Session
+		query     *QueryExecuteSnapshotParam
+		message   string
+		count     uint64
+		snapshots []*JobExecuteSnapshot
+		totalPage uint64
+		where     = db.NewCompounds()
 	)
 
 	query = new(QueryExecuteSnapshotParam)
@@ -615,47 +614,39 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 	}
 
 	snapshots = make([]*JobExecuteSnapshot, 0)
-	where = api.node.engine.Where("1=1")
-	queryWhere = api.node.engine.Where("1=1")
 	if query.Id != "" {
-		where.And("id=?", query.Id)
-		queryWhere.And("id=?", query.Id)
+		where.AddKV(`id`, query.Id)
 	}
 	if query.Group != "" {
-		where.And("`group`=?", query.Group)
-		queryWhere.And("`group`=?", query.Group)
+		where.AddKV(`group`, query.Group)
 	}
-
 	if query.Ip != "" {
-		where.And("ip=?", query.Ip)
-		queryWhere.And("ip=?", query.Ip)
+		where.AddKV(`ip`, query.Ip)
 	}
 	if query.Name != "" {
-		where.And("name=?", query.Name)
-		queryWhere.And("name=?", query.Name)
+		where.AddKV(`name`, query.Name)
 	}
 	if query.Status != 0 {
-		where.And("`status`=?", query.Status)
-		queryWhere.And("`status`=?", query.Status)
+		where.AddKV(`status`, query.Status)
 	}
-	if count, err = where.Count(&JobExecuteSnapshot{}); err != nil {
+	if count, err = api.node.DB().Collection(`job_execute_snapshot`).Find(where.And()).Count(); err != nil {
 		log.Errorf("err: %#v", err)
 		message = "查询失败"
 		goto ERROR
 	}
 
 	if count > 0 {
-		err = queryWhere.Desc("create_time").Limit(query.PageSize, (query.PageNo-1)*query.PageSize).Find(&snapshots)
+		err = api.node.DB().Collection(`job_execute_snapshot`).Find(where.And()).OrderBy(`-create_time`).Limit(query.PageSize).Offset((query.PageNo - 1) * query.PageSize).All(&snapshots)
 		if err != nil {
 			log.Errorf("err: %#v", err)
 			message = "查询失败"
 			goto ERROR
 		}
 
-		if count%int64(query.PageSize) == 0 {
-			totalPage = count / int64(query.PageSize)
+		if count%uint64(query.PageSize) == 0 {
+			totalPage = count / uint64(query.PageSize)
 		} else {
-			totalPage = count/int64(query.PageSize) + 1
+			totalPage = count/uint64(query.PageSize) + 1
 		}
 
 	}

@@ -2,14 +2,15 @@ package forest
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/admpub/log"
 	"github.com/andistributed/etcd"
 	"github.com/andistributed/etcd/etcdevent"
 	"github.com/andistributed/etcd/etcdresponse"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/xorm"
+	"github.com/webx-top/db/lib/sqlbuilder"
+	"github.com/webx-top/db/mysql"
 	"github.com/webx-top/echo/engine"
 )
 
@@ -30,11 +31,13 @@ type JobNode struct {
 	scheduler    *JobScheduler
 	groupManager *JobGroupManager
 	exec         *JobExecutor
-	engine       *xorm.Engine
+	db           sqlbuilder.Database
+	dbSettings   mysql.ConnectionURL
 	collection   *JobCollection
 	failOver     *JobSnapshotFailOver
 	listeners    []NodeStateChangeListener
 	close        chan bool
+	once         sync.Once
 }
 
 // NodeStateChangeListener node state change listener
@@ -42,13 +45,7 @@ type NodeStateChangeListener interface {
 	notify(int)
 }
 
-func NewJobNode(id string, etcd *etcd.Etcd, dbUrl string) (node *JobNode, err error) {
-
-	engine, err := xorm.NewEngine("mysql", dbUrl)
-	if err != nil {
-		return
-	}
-
+func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err error) {
 	node = &JobNode{
 		id:           id,
 		registerPath: fmt.Sprintf("%s%s", JobNodePath, id),
@@ -56,8 +53,22 @@ func NewJobNode(id string, etcd *etcd.Etcd, dbUrl string) (node *JobNode, err er
 		etcd:         etcd,
 		state:        NodeFollowerState,
 		close:        make(chan bool),
-		engine:       engine,
 		listeners:    make([]NodeStateChangeListener, 0),
+		once:         sync.Once{},
+	}
+	node.dbSettings, err = mysql.ParseURL(dsn)
+	if err != nil {
+		return
+	}
+	node.once.Do(func() {
+		node.db, err = mysql.Open(node.dbSettings)
+		if err != nil {
+			log.Error(err)
+		}
+	})
+	if err != nil {
+		err = nil
+		node.once = sync.Once{}
 	}
 
 	node.failOver = NewJobSnapshotFailOver(node)
@@ -79,6 +90,19 @@ func NewJobNode(id string, etcd *etcd.Etcd, dbUrl string) (node *JobNode, err er
 	return
 }
 
+func (node *JobNode) DB() sqlbuilder.Database {
+	node.once.Do(node.connectDB)
+	return node.db
+}
+
+func (node *JobNode) connectDB() {
+	db, err := mysql.Open(node.dbSettings)
+	if err != nil {
+		log.Fatal(err)
+	}
+	node.db = db
+}
+
 // StartAPIServer create a job http api and start service
 func (node *JobNode) StartAPIServer(auth *ApiAuth, address string, opts ...engine.ConfigSetter) {
 	api := NewJobAPi(node, auth)
@@ -86,9 +110,7 @@ func (node *JobNode) StartAPIServer(auth *ApiAuth, address string, opts ...engin
 }
 
 func (node *JobNode) addListeners() {
-
 	node.listeners = append(node.listeners, node.scheduler)
-
 }
 
 func (node *JobNode) changeState(state int) {
@@ -122,7 +144,6 @@ func (node *JobNode) initNode() {
 	node.watchRegisterJobNode()
 	node.watchElectPath()
 	go node.loopStartElect()
-
 }
 
 // Bootstrap bootstrap
@@ -144,7 +165,6 @@ func (node *JobNode) watchRegisterJobNode() {
 	keyChangeEventResponse := node.etcd.Watch(node.registerPath)
 
 	go func() {
-
 		for ch := range keyChangeEventResponse.Event {
 			node.handleRegisterJobNodeChangeEvent(ch)
 		}
@@ -165,7 +185,6 @@ func (node *JobNode) handleRegisterJobNodeChangeEvent(changeEvent *etcdevent.Key
 }
 
 func (node *JobNode) registerJobNode() (txResponse *etcdresponse.TxResponse, err error) {
-
 	return node.etcd.TxKeepaliveWithTTL(node.registerPath, node.id, TTL)
 }
 
@@ -187,7 +206,6 @@ RETRY:
 	if txResponse.Success {
 		log.Infof("the job node: %s, success register to: %s", node.id, node.registerPath)
 	} else {
-
 		v := txResponse.Value
 		if v != node.id {
 			time.Sleep(time.Second)

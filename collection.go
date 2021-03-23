@@ -6,6 +6,7 @@ import (
 
 	"github.com/admpub/log"
 	"github.com/andistributed/etcd/etcdevent"
+	"github.com/webx-top/db"
 )
 
 // collection job execute status
@@ -120,17 +121,15 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 		_ = c.node.etcd.Delete(path)
 	}
 
+	var days int
 	dateTime, err := ParseInLocation(snapshot.CreateTime)
-	days := 0
 	if err == nil {
-
 		days = TimeSubDays(time.Now(), dateTime)
-
 	}
 	if snapshot.Status == JobExecuteSnapshotDoingStatus && days >= 3 {
 		_ = c.node.etcd.Delete(path)
 	}
-	_, err = c.node.engine.Insert(snapshot)
+	_, err = c.node.DB().Collection(`job_execute_snapshot`).Insert(snapshot)
 	if err != nil {
 		log.Errorf("err: %#v", err)
 	}
@@ -154,7 +153,7 @@ func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *Jo
 		_ = c.node.etcd.Delete(path)
 	}
 
-	_, _ = c.node.engine.Where("id=?", snapshot.Id).Cols("status", "finish_time", "times", "result").Update(snapshot)
+	c.node.DB().Collection(`job_execute_snapshot`).Find(db.Cond{`id`: snapshot.Id}).Update(snapshot)
 
 }
 
@@ -167,7 +166,7 @@ func (c *JobCollection) checkExist(id string) (exist bool, err error) {
 
 	snapshot = new(JobExecuteSnapshot)
 
-	if exist, err = c.node.engine.Where("id=?", id).Get(snapshot); err != nil {
+	if err = c.node.DB().Collection(`job_execute_snapshot`).Find(db.Cond{`id`: id}).One(snapshot); err != nil && err != db.ErrNoMoreRows {
 		return
 	}
 
