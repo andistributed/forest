@@ -62,11 +62,9 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 	}
 	node.once.Do(func() {
 		node.db, err = mysql.Open(node.dbSettings)
-		if err != nil {
-			log.Error(err)
-		}
 	})
 	if err != nil {
+		log.Error(err)
 		err = nil
 		node.once = sync.Once{}
 	}
