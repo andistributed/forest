@@ -31,13 +31,15 @@ type JobNode struct {
 	scheduler    *JobScheduler
 	groupManager *JobGroupManager
 	exec         *JobExecutor
-	db           sqlbuilder.Database
-	dbSettings   mysql.ConnectionURL
 	collection   *JobCollection
 	failOver     *JobSnapshotFailOver
 	listeners    []NodeStateChangeListener
 	close        chan bool
-	once         sync.Once
+
+	// - db -
+	db         sqlbuilder.Database
+	dbSettings mysql.ConnectionURL
+	once       sync.Once
 }
 
 // NodeStateChangeListener node state change listener
