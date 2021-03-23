@@ -193,7 +193,7 @@ func (sch *JobScheduler) loopSchedule() {
 		}
 
 		durationTime := sch.trySchedule()
-		log.Debugf("the durationTime: %d", durationTime)
+		log.Debugf("the durationTime: %v", durationTime)
 		timer.Reset(durationTime)
 	}
 
