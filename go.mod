@@ -12,7 +12,7 @@ require (
 	github.com/admpub/fsnotify v1.4.4 // indirect
 	github.com/admpub/go-reuseport v0.0.3 // indirect
 	github.com/admpub/humanize v0.0.0-20190501023926-5f826e92c8ca // indirect
-	github.com/admpub/log v0.2.1
+	github.com/admpub/log v0.2.2
 	github.com/admpub/securecookie v1.1.2
 	github.com/admpub/sessions v0.0.1 // indirect
 	github.com/andistributed/etcd v0.1.0
