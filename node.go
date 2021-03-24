@@ -2,6 +2,7 @@ package forest
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -65,6 +66,9 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 	}
 	node.once.Do(func() {
 		node.db, err = mysql.Open(node.dbSettings)
+		if err != nil {
+			node.db, err = node.autoCreateDatabase(err)
+		}
 	})
 	if err != nil {
 		log.Error(err)
@@ -108,6 +112,37 @@ func (node *JobNode) connectDB() {
 	node.db = db
 }
 
+func (node *JobNode) autoCreateDatabase(err error) (sqlbuilder.Database, error) {
+	if !strings.Contains(err.Error(), `Unknown database`) {
+		return nil, err
+	}
+	settings := node.dbSettings
+	settings.Database = ``
+	db, err := mysql.Open(settings)
+	if err != nil {
+		return nil, err
+	}
+	log.Info(`create database: `, node.dbSettings.Database)
+	_, err = db.Exec("CREATE DATABASE `" + node.dbSettings.Database + "`")
+	db.Close()
+	if err != nil {
+		return nil, err
+	}
+	db, err = mysql.Open(node.dbSettings)
+	if err != nil {
+		return nil, err
+	}
+	for _, sql := range InitSQLs {
+		log.Info(`execution sql: `, sql)
+		_, err = db.Exec(sql)
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+	}
+	return db, err
+}
+
 // StartAPIServer create a job http api and start service
 func (node *JobNode) StartAPIServer(auth *ApiAuth, address string, opts ...engine.ConfigSetter) {
 	api := NewJobAPi(node, auth)
@@ -140,7 +175,7 @@ func (node *JobNode) initNode() {
 		log.Fatalf("the job node: %s, fail register to: %s", node.id, node.registerPath)
 	}
 	if !txResponse.Success {
-		log.Fatalf("the job node: %s, fail register to: %s,the job node id exist ", node.id, node.registerPath)
+		log.Fatalf("the job node: %s, fail register to: %s, the job node id exist ", node.id, node.registerPath)
 	}
 	log.Infof("the job node: %s, success register to: %s", node.id, node.registerPath)
 	node.watchRegisterJobNode()
