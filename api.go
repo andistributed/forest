@@ -629,14 +629,21 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 	if query.Status != 0 {
 		where.AddKV(`status`, query.Status)
 	}
-	if count, err = api.node.DB().Collection(`job_execute_snapshot`).Find(where.And()).Count(); err != nil {
+	if count, err = api.node.UseTable(TableJobExecuteSnapshot).
+		Find(where.And()).
+		Count(); err != nil {
 		log.Errorf("err: %#v", err)
 		message = "查询失败"
 		goto ERROR
 	}
 
 	if count > 0 {
-		err = api.node.DB().Collection(`job_execute_snapshot`).Find(where.And()).OrderBy(`-create_time`).Limit(query.PageSize).Offset((query.PageNo - 1) * query.PageSize).All(&snapshots)
+		err = api.node.UseTable(TableJobExecuteSnapshot).
+			Find(where.And()).
+			OrderBy(`-create_time`).
+			Limit(query.PageSize).
+			Offset((query.PageNo - 1) * query.PageSize).
+			All(&snapshots)
 		if err != nil {
 			log.Errorf("err: %#v", err)
 			message = "查询失败"
@@ -651,7 +658,15 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 	}
 
-	return context.JSON(Result{Code: 0, Data: &PageResult{TotalCount: int(count), TotalPage: int(totalPage), List: &snapshots}, Message: "查询成功"})
+	return context.JSON(Result{
+		Code: 0,
+		Data: &PageResult{
+			TotalCount: int(count),
+			TotalPage:  int(totalPage),
+			List:       &snapshots,
+		},
+		Message: "查询成功",
+	})
 
 ERROR:
 	return context.JSON(Result{Code: -1, Message: message})
@@ -723,7 +738,8 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 	}
 
 	// dispatch the job snapshot the client
-	if success, _, err = api.node.etcd.PutNotExist(snapshotPath, string(value)); err != nil {
+	if success, _, err = api.node.etcd.
+		PutNotExist(snapshotPath, string(value)); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
 

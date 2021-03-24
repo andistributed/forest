@@ -9,6 +9,7 @@ import (
 	"github.com/andistributed/etcd"
 	"github.com/andistributed/etcd/etcdevent"
 	"github.com/andistributed/etcd/etcdresponse"
+	"github.com/webx-top/db"
 	"github.com/webx-top/db/lib/sqlbuilder"
 	"github.com/webx-top/db/mysql"
 	"github.com/webx-top/echo/engine"
@@ -95,6 +96,10 @@ func (node *JobNode) DB() sqlbuilder.Database {
 	return node.db
 }
 
+func (node *JobNode) UseTable(table string) db.Collection {
+	return node.DB().Collection(table)
+}
+
 func (node *JobNode) connectDB() {
 	db, err := mysql.Open(node.dbSettings)
 	if err != nil {
@@ -118,13 +123,11 @@ func (node *JobNode) changeState(state int) {
 	node.state = state
 
 	if len(node.listeners) == 0 {
-
 		return
 	}
 
 	// notify all listener
 	for _, listener := range node.listeners {
-
 		listener.notify(state)
 	}
 
@@ -135,7 +138,6 @@ func (node *JobNode) initNode() {
 	txResponse, err := node.registerJobNode()
 	if err != nil {
 		log.Fatalf("the job node: %s, fail register to: %s", node.id, node.registerPath)
-
 	}
 	if !txResponse.Success {
 		log.Fatalf("the job node: %s, fail register to: %s,the job node id exist ", node.id, node.registerPath)

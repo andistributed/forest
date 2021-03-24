@@ -111,13 +111,14 @@ func (c *JobCollection) handleJobExecuteSnapshot(path string, snapshot *JobExecu
 	} else {
 		c.handleCreateJobExecuteSnapshot(path, snapshot)
 	}
-
 }
 
 // handle create job execute snapshot
 func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *JobExecuteSnapshot) {
 
-	if snapshot.Status == JobExecuteSnapshotUnkonwStatus || snapshot.Status == JobExecuteSnapshotErrorStatus || snapshot.Status == JobExecuteSnapshotSuccessStatus {
+	if snapshot.Status == JobExecuteSnapshotUnkonwStatus ||
+		snapshot.Status == JobExecuteSnapshotErrorStatus ||
+		snapshot.Status == JobExecuteSnapshotSuccessStatus {
 		_ = c.node.etcd.Delete(path)
 	}
 
@@ -129,7 +130,7 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 	if snapshot.Status == JobExecuteSnapshotDoingStatus && days >= 3 {
 		_ = c.node.etcd.Delete(path)
 	}
-	_, err = c.node.DB().Collection(`job_execute_snapshot`).Insert(snapshot)
+	_, err = c.node.UseTable(TableJobExecuteSnapshot).Insert(snapshot)
 	if err != nil {
 		log.Errorf("err: %#v", err)
 	}
@@ -138,23 +139,27 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 // handle update job execute snapshot
 func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *JobExecuteSnapshot) {
 
-	if snapshot.Status == JobExecuteSnapshotUnkonwStatus || snapshot.Status == JobExecuteSnapshotErrorStatus || snapshot.Status == JobExecuteSnapshotSuccessStatus {
+	if snapshot.Status == JobExecuteSnapshotUnkonwStatus ||
+		snapshot.Status == JobExecuteSnapshotErrorStatus ||
+		snapshot.Status == JobExecuteSnapshotSuccessStatus {
 		_ = c.node.etcd.Delete(path)
 	}
 
+	var days int
 	dateTime, err := ParseInLocation(snapshot.CreateTime)
-	days := 0
 	if err == nil {
-
 		days = TimeSubDays(time.Now(), dateTime)
-
 	}
 	if snapshot.Status == JobExecuteSnapshotDoingStatus && days >= 3 {
 		_ = c.node.etcd.Delete(path)
 	}
 
-	c.node.DB().Collection(`job_execute_snapshot`).Find(db.Cond{`id`: snapshot.Id}).Update(snapshot)
-
+	err = c.node.UseTable(TableJobExecuteSnapshot).
+		Find(db.Cond{`id`: snapshot.Id}).
+		Update(snapshot)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // check the exist
@@ -166,12 +171,13 @@ func (c *JobCollection) checkExist(id string) (exist bool, err error) {
 
 	snapshot = new(JobExecuteSnapshot)
 
-	if err = c.node.DB().Collection(`job_execute_snapshot`).Find(db.Cond{`id`: id}).One(snapshot); err != nil && err != db.ErrNoMoreRows {
+	if err = c.node.UseTable(TableJobExecuteSnapshot).
+		Find(db.Cond{`id`: id}).
+		One(snapshot); err != nil && err != db.ErrNoMoreRows {
 		return
 	}
 
 	return
-
 }
 
 func (c *JobCollection) loop() {
@@ -195,7 +201,7 @@ func (c *JobCollection) loop() {
 				continue
 			}
 
-			for pos := 0; pos < len(keys); pos++ {
+			for pos, size := 0, len(keys); pos < size; pos++ {
 
 				executeSnapshot, err := UnpackJobExecuteSnapshot(values[pos])
 
@@ -205,7 +211,9 @@ func (c *JobCollection) loop() {
 					continue
 				}
 
-				if executeSnapshot.Status == JobExecuteSnapshotSuccessStatus || executeSnapshot.Status == JobExecuteSnapshotErrorStatus || executeSnapshot.Status == JobExecuteSnapshotUnkonwStatus {
+				if executeSnapshot.Status == JobExecuteSnapshotSuccessStatus ||
+					executeSnapshot.Status == JobExecuteSnapshotErrorStatus ||
+					executeSnapshot.Status == JobExecuteSnapshotUnkonwStatus {
 					path := string(keys[pos])
 					c.handleJobExecuteSnapshot(path, executeSnapshot)
 				}
