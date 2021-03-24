@@ -90,7 +90,6 @@ func (manager *JobManager) handleJobCreateEvent(value []byte) {
 		jobConf *JobConf
 	)
 	if len(value) == 0 {
-
 		return
 	}
 
@@ -113,7 +112,6 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 		jobConf *JobConf
 	)
 	if len(value) == 0 {
-
 		return
 	}
 
@@ -169,7 +167,6 @@ func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 	}
 
 	if len(value) == 0 {
-
 		err = errors.New("任务集群不存在")
 		return
 	}
@@ -206,7 +203,6 @@ func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
 	}
 
 	if len(value) == 0 {
-
 		err = errors.New("任务集群不存在")
 		return
 	}
@@ -295,7 +291,6 @@ func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
 		}
 
 		jobConfs = append(jobConfs, jobConf)
-
 	}
 
 	return
@@ -317,12 +312,10 @@ func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
 	}
 
 	if !success {
-
 		err = errors.New("此任务集群已存在")
 	}
 
 	return
-
 }
 
 // edit group
@@ -351,12 +344,10 @@ func (manager *JobManager) editGroup(groupConf *GroupConf) (err error) {
 	}
 
 	if !success {
-
 		err = errors.New("此任务集群已存在")
 	}
 
 	return
-
 }
 
 // delete group
@@ -381,7 +372,6 @@ func (manager *JobManager) deleteGroup(groupConf *GroupConf) (err error) {
 	}
 
 	err = manager.node.etcd.Delete(GroupConfPath + groupConf.Name)
-
 	return
 }
 
