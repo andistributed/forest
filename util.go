@@ -15,7 +15,6 @@ func GenerateSerialNo() string {
 	format := now.Format("20060102150405")
 	suffer := fmt.Sprintf("%06v", rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(1000000))
 	return fmt.Sprintf("%s%s", format, suffer)
-
 }
 
 func ToDateString(date time.Time) string {
