@@ -13,20 +13,21 @@ require (
 	github.com/admpub/go-reuseport v0.0.3 // indirect
 	github.com/admpub/humanize v0.0.0-20190501023926-5f826e92c8ca // indirect
 	github.com/admpub/log v0.2.2
+	github.com/admpub/realip v0.0.0-20210421084339-374cf5df122d // indirect
 	github.com/admpub/securecookie v1.1.2
 	github.com/admpub/sessions v0.0.1 // indirect
 	github.com/andistributed/etcd v0.1.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/francoispqt/gojay v1.2.13 // indirect
-	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.4.8 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/robfig/cron v1.2.0
 	github.com/webx-top/captcha v0.0.0-20161202061115-29e9e7f30aa0 // indirect
-	github.com/webx-top/com v0.1.2
-	github.com/webx-top/db v1.1.5
-	github.com/webx-top/echo v2.8.3+incompatible
+	github.com/webx-top/com v0.2.0
+	github.com/webx-top/db v1.1.6
+	github.com/webx-top/echo v2.9.4+incompatible
 	github.com/webx-top/tagfast v0.0.0-20161020041435-9a2065ce3dd2 // indirect
 	github.com/webx-top/validation v0.0.1 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0
