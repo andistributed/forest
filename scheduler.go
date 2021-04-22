@@ -278,7 +278,7 @@ func (sch *JobScheduler) trySync() {
 		err      error
 	)
 
-	if sch.syncStatus == true {
+	if sch.syncStatus {
 		log.Warn("the sync event is syncing....")
 		return
 	}
@@ -316,7 +316,7 @@ func (sch *JobScheduler) trySync() {
 		}
 	}
 
-	log.Infof("finish sync the schedule plan use【%dms】....", time.Now().Sub(now)/time.Millisecond)
+	log.Infof("finish sync the schedule plan use【%dms】....", time.Since(now)/time.Millisecond)
 
 }
 

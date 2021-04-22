@@ -57,7 +57,7 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 		etcd:         etcd,
 		state:        NodeFollowerState,
 		close:        make(chan bool),
-		listeners:    make([]NodeStateChangeListener, 0),
+		listeners:    []NodeStateChangeListener{},
 		once:         sync.Once{},
 	}
 	node.dbSettings, err = mysql.ParseURL(dsn)
@@ -92,6 +92,7 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 	// create job manager
 	node.manager = NewJobManager(node)
 
+	node.addListeners()
 	return
 }
 
@@ -175,7 +176,7 @@ func (node *JobNode) initNode() {
 		log.Fatalf("the job node: %s, fail register to: %s", node.id, node.registerPath)
 	}
 	if !txResponse.Success {
-		log.Fatalf("the job node: %s, fail register to: %s, the job node id exist ", node.id, node.registerPath)
+		log.Fatalf("the job node: %s, fail register to: %s, the job node id exist", node.id, node.registerPath)
 	}
 	log.Infof("the job node: %s, success register to: %s", node.id, node.registerPath)
 	node.watchRegisterJobNode()

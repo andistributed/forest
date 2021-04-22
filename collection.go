@@ -164,26 +164,23 @@ func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *Jo
 
 // check the exist
 func (c *JobCollection) checkExist(id string) (exist bool, err error) {
-
-	var (
-		snapshot *JobExecuteSnapshot
-	)
-
-	snapshot = new(JobExecuteSnapshot)
-
+	snapshot := new(JobExecuteSnapshot)
 	if err = c.node.UseTable(TableJobExecuteSnapshot).
 		Find(db.Cond{`id`: id}).
-		One(snapshot); err != nil && err != db.ErrNoMoreRows {
+		One(snapshot); err != nil {
+		if err == db.ErrNoMoreRows {
+			err = nil
+		}
 		return
 	}
-
+	exist = true
 	return
 }
 
 func (c *JobCollection) loop() {
 
 	timer := time.NewTimer(10 * time.Minute)
-
+	defer timer.Stop()
 	for {
 
 		key := JobExecuteStatusCollectionPath
