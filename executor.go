@@ -18,20 +18,16 @@ type JobExecutor struct {
 }
 
 func NewJobExecutor(node *JobNode) (exec *JobExecutor) {
-
 	exec = &JobExecutor{
 		node:      node,
 		snapshots: make(chan *JobSnapshot, 500),
 	}
 	go exec.lookup()
-
 	return
 }
 
 func (exec *JobExecutor) lookup() {
-
 	for snapshot := range exec.snapshots {
-
 		exec.handleJobSnapshot(snapshot)
 	}
 }
@@ -63,11 +59,9 @@ func (exec *JobExecutor) handleJobSnapshot(snapshot *JobSnapshot) {
 	if err = exec.node.etcd.Put(snapshotPath+snapshot.Id, string(value)); err != nil {
 		log.Warnf("put the snapshot %s error: %#v", group, err)
 	}
-
 }
 
 // push a new job snapshot
 func (exec *JobExecutor) pushSnapshot(snapshot *JobSnapshot) {
-
 	exec.snapshots <- snapshot
 }
