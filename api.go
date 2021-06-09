@@ -92,9 +92,12 @@ const sessionKey = `user`
 
 func (api *JobAPI) login(context echo.Context) (err error) {
 	var (
-		message string
-		signed  string
-		claims  *jwt.StandardClaims
+		message   string
+		signed    string
+		claims    *jwt.StandardClaims
+		now       time.Time
+		ts        int64
+		expiresAt int64
 	)
 	user := &InputLogin{}
 	if err = context.MustBind(user); err != nil {
@@ -117,13 +120,16 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 		message = err.Error()
 		goto ERROR
 	}
+	now = time.Now()
+	ts = int64(now.Second())
+	expiresAt = ts + 30*86400
 	claims = &jwt.StandardClaims{
 		Audience:  context.Session().MustID(),
-		ExpiresAt: 0,
+		ExpiresAt: expiresAt,
 		Id:        user.Username,
-		IssuedAt:  0,
+		IssuedAt:  ts,
 		Issuer:    `forest`,
-		NotBefore: 0,
+		NotBefore: ts,
 		Subject:   user.Username,
 	}
 	signed, err = mwjwt.BuildStandardSignedString(claims, []byte(api.auth.JWTKey))

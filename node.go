@@ -75,15 +75,13 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 		err = nil
 		node.once = sync.Once{}
 	}
-
 	node.failOver = NewJobSnapshotFailOver(node)
-
 	node.collection = NewJobCollection(node)
-
 	node.initNode()
 
 	// create job executor
 	node.exec = NewJobExecutor(node)
+
 	// create  group manager
 	node.groupManager = NewJobGroupManager(node)
 
@@ -155,9 +153,7 @@ func (node *JobNode) addListeners() {
 }
 
 func (node *JobNode) changeState(state int) {
-
 	node.state = state
-
 	if len(node.listeners) == 0 {
 		return
 	}
@@ -166,7 +162,6 @@ func (node *JobNode) changeState(state int) {
 	for _, listener := range node.listeners {
 		listener.notify(state)
 	}
-
 }
 
 // start register node
@@ -186,10 +181,8 @@ func (node *JobNode) initNode() {
 
 // Bootstrap bootstrap
 func (node *JobNode) Bootstrap() {
-
 	go node.groupManager.loopLoadGroups()
 	go node.manager.loopLoadJobConf()
-
 	<-node.close
 }
 
@@ -199,20 +192,16 @@ func (node *JobNode) Close() {
 
 // watch the register job node
 func (node *JobNode) watchRegisterJobNode() {
-
 	keyChangeEventResponse := node.etcd.Watch(node.registerPath)
-
 	go func() {
 		for ch := range keyChangeEventResponse.Event {
 			node.handleRegisterJobNodeChangeEvent(ch)
 		}
 	}()
-
 }
 
 // handle the register job node change event
 func (node *JobNode) handleRegisterJobNodeChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
-
 	switch changeEvent.Type {
 	case etcdevent.KeyCreateChangeEvent:
 	case etcdevent.KeyUpdateChangeEvent:
@@ -230,7 +219,6 @@ func (node *JobNode) registerJobNode() (txResponse *etcdresponse.TxResponse, err
 func (node *JobNode) loopRegisterJobNode() {
 
 RETRY:
-
 	var (
 		txResponse *etcdresponse.TxResponse
 		err        error
@@ -251,7 +239,6 @@ RETRY:
 		}
 		log.Infof("the job node: %s, has already success register to: %s", node.id, node.registerPath)
 	}
-
 }
 
 // elect the leader
@@ -261,20 +248,16 @@ func (node *JobNode) elect() (txResponse *etcdresponse.TxResponse, err error) {
 
 // watch the job node elect path
 func (node *JobNode) watchElectPath() {
-
 	keyChangeEventResponse := node.etcd.Watch(node.electPath)
-
 	go func() {
 		for ch := range keyChangeEventResponse.Event {
 			node.handleElectLeaderChangeEvent(ch)
 		}
 	}()
-
 }
 
 // handle the job node leader change event
 func (node *JobNode) handleElectLeaderChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
-
 	switch changeEvent.Type {
 	case etcdevent.KeyDeleteChangeEvent:
 		node.changeState(NodeFollowerState)
@@ -285,7 +268,6 @@ func (node *JobNode) handleElectLeaderChangeEvent(changeEvent *etcdevent.KeyChan
 	case etcdevent.KeyUpdateChangeEvent:
 
 	}
-
 }
 
 // loop start elect
@@ -315,5 +297,4 @@ RETRY:
 			node.changeState(NodeLeaderState)
 		}
 	}
-
 }

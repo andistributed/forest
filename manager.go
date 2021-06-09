@@ -17,21 +17,15 @@ type JobManager struct {
 }
 
 func NewJobManager(node *JobNode) (manager *JobManager) {
-
 	manager = &JobManager{
 		node: node,
 	}
-
 	go manager.watchJobConfPath()
-
 	return
-
 }
 
 func (manager *JobManager) watchJobConfPath() {
-
 	keyChangeEventResponse := manager.node.etcd.WatchWithPrefixKey(JobConfPath)
-
 	for ch := range keyChangeEventResponse.Event {
 		manager.handleJobConfChangeEvent(ch)
 	}
@@ -46,7 +40,6 @@ RETRY:
 		err    error
 	)
 	if keys, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
-
 		goto RETRY
 	}
 
@@ -64,9 +57,7 @@ RETRY:
 			Type: JobCreateChangeEvent,
 			Conf: jobConf,
 		})
-
 	}
-
 }
 
 func (manager *JobManager) handleJobConfChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
@@ -84,7 +75,6 @@ func (manager *JobManager) handleJobConfChangeEvent(changeEvent *etcdevent.KeyCh
 }
 
 func (manager *JobManager) handleJobCreateEvent(value []byte) {
-
 	var (
 		err     error
 		jobConf *JobConf
@@ -92,17 +82,14 @@ func (manager *JobManager) handleJobCreateEvent(value []byte) {
 	if len(value) == 0 {
 		return
 	}
-
 	if jobConf, err = UnpackJobConf(value); err != nil {
 		log.Errorf("unpack the job conf err: %#v", err)
 		return
 	}
-
 	manager.node.scheduler.pushJobChangeEvent(&JobChangeEvent{
 		Type: JobCreateChangeEvent,
 		Conf: jobConf,
 	})
-
 }
 
 func (manager *JobManager) handleJobUpdateEvent(value []byte) {
@@ -129,39 +116,31 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 
 // handle the job delete event
 func (manager *JobManager) handleJobDeleteEvent(key string) {
-
 	if key == "" {
 		return
 	}
-
 	pos := strings.LastIndex(key, "/")
 	if pos == -1 {
 		return
 	}
-
 	id := key[pos+1:]
-
 	jobConf := &JobConf{
 		Id:      id,
 		Version: -1,
 	}
-
 	manager.node.scheduler.pushJobChangeEvent(&JobChangeEvent{
 		Type: JobDeleteChangeEvent,
 		Conf: jobConf,
 	})
-
 }
 
 // AddJob add job conf
 func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
-
 	var (
 		value   []byte
 		v       []byte
 		success bool
 	)
-
 	if value, err = manager.node.etcd.Get(GroupConfPath + jobConf.Group); err != nil {
 		return
 	}
@@ -180,7 +159,6 @@ func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 	if success, _, err = manager.node.etcd.PutNotExist(JobConfPath+jobConf.Id, string(v)); err != nil {
 		return
 	}
-
 	if !success {
 		err = errors.New("创建失败,请重试！")
 		return
@@ -190,7 +168,6 @@ func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 
 // edit job conf
 func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
-
 	var (
 		value   []byte
 		v       []byte
@@ -233,7 +210,6 @@ func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
 	if success, err = manager.node.etcd.Update(JobConfPath+jobConf.Id, string(v), string(value)); err != nil {
 		return
 	}
-
 	if !success {
 		err = errors.New("修改失败,请重试！")
 		return
@@ -243,7 +219,6 @@ func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
 
 // delete job conf
 func (manager *JobManager) deleteJob(jobConf *JobConf) (err error) {
-
 	var (
 		value []byte
 	)
@@ -262,13 +237,11 @@ func (manager *JobManager) deleteJob(jobConf *JobConf) (err error) {
 		return
 	}
 	err = manager.node.etcd.Delete(JobConfPath + jobConf.Id)
-
 	return
 }
 
 // job list
 func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
-
 	var (
 		keys   [][]byte
 		values [][]byte
@@ -283,22 +256,18 @@ func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
 
 	jobConfs = make([]*JobConf, 0)
 	for i := 0; i < len(values); i++ {
-
 		jobConf, err := UnpackJobConf(values[i])
 		if err != nil {
 			log.Errorf("unpack the job conf errror: %#v", err)
 			continue
 		}
-
 		jobConfs = append(jobConfs, jobConf)
 	}
-
 	return
 }
 
 // add group
 func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
-
 	var (
 		value   []byte
 		success bool
@@ -314,13 +283,11 @@ func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
 	if !success {
 		err = errors.New("此任务集群已存在")
 	}
-
 	return
 }
 
 // edit group
 func (manager *JobManager) editGroup(groupConf *GroupConf) (err error) {
-
 	var (
 		value   []byte
 		newV    []byte
@@ -346,7 +313,6 @@ func (manager *JobManager) editGroup(groupConf *GroupConf) (err error) {
 	if !success {
 		err = errors.New("此任务集群已存在")
 	}
-
 	return
 }
 
@@ -377,7 +343,6 @@ func (manager *JobManager) deleteGroup(groupConf *GroupConf) (err error) {
 
 // group list
 func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
-
 	var (
 		keys   [][]byte
 		values [][]byte
@@ -392,7 +357,6 @@ func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 
 	groupConfs = make([]*GroupConf, 0)
 	for i := 0; i < len(values); i++ {
-
 		groupConf, err := UnpackGroupConf(values[i])
 		if err != nil {
 			log.Errorf("unpack the group conf errror: %#v", err)
@@ -402,13 +366,11 @@ func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 		groupConfs = append(groupConfs, groupConf)
 
 	}
-
 	return
 }
 
 // node list
 func (manager *JobManager) nodeList() (nodes []string, err error) {
-
 	var (
 		keys   [][]byte
 		values [][]byte
@@ -425,6 +387,5 @@ func (manager *JobManager) nodeList() (nodes []string, err error) {
 	for i := 0; i < len(values); i++ {
 		nodes = append(nodes, string(values[i]))
 	}
-
 	return
 }
