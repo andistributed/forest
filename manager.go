@@ -2,7 +2,9 @@ package forest
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/admpub/log"
 	"github.com/andistributed/etcd/etcdevent"
@@ -167,7 +169,7 @@ func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 }
 
 // edit job conf
-func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
+func (manager *JobManager) EditJob(jobConf *JobConf) (err error) {
 	var (
 		value   []byte
 		v       []byte
@@ -218,7 +220,7 @@ func (manager *JobManager) editJob(jobConf *JobConf) (err error) {
 }
 
 // delete job conf
-func (manager *JobManager) deleteJob(jobConf *JobConf) (err error) {
+func (manager *JobManager) DeleteJob(jobConf *JobConf) (err error) {
 	var (
 		value []byte
 	)
@@ -241,7 +243,7 @@ func (manager *JobManager) deleteJob(jobConf *JobConf) (err error) {
 }
 
 // job list
-func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
+func (manager *JobManager) JobList() (jobConfs []*JobConf, err error) {
 	var (
 		keys   [][]byte
 		values [][]byte
@@ -267,7 +269,7 @@ func (manager *JobManager) jobList() (jobConfs []*JobConf, err error) {
 }
 
 // add group
-func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
+func (manager *JobManager) AddGroup(groupConf *GroupConf) (err error) {
 	var (
 		value   []byte
 		success bool
@@ -287,7 +289,7 @@ func (manager *JobManager) addGroup(groupConf *GroupConf) (err error) {
 }
 
 // edit group
-func (manager *JobManager) editGroup(groupConf *GroupConf) (err error) {
+func (manager *JobManager) EditGroup(groupConf *GroupConf) (err error) {
 	var (
 		value   []byte
 		newV    []byte
@@ -317,7 +319,7 @@ func (manager *JobManager) editGroup(groupConf *GroupConf) (err error) {
 }
 
 // delete group
-func (manager *JobManager) deleteGroup(groupConf *GroupConf) (err error) {
+func (manager *JobManager) DeleteGroup(groupConf *GroupConf) (err error) {
 
 	var (
 		value []byte
@@ -342,7 +344,7 @@ func (manager *JobManager) deleteGroup(groupConf *GroupConf) (err error) {
 }
 
 // group list
-func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
+func (manager *JobManager) GroupList() (groupConfs []*GroupConf, err error) {
 	var (
 		keys   [][]byte
 		values [][]byte
@@ -370,7 +372,7 @@ func (manager *JobManager) groupList() (groupConfs []*GroupConf, err error) {
 }
 
 // node list
-func (manager *JobManager) nodeList() (nodes []string, err error) {
+func (manager *JobManager) NodeList() (nodes []string, err error) {
 	var (
 		keys   [][]byte
 		values [][]byte
@@ -388,4 +390,77 @@ func (manager *JobManager) nodeList() (nodes []string, err error) {
 		nodes = append(nodes, string(values[i]))
 	}
 	return
+}
+
+func (manager *JobManager) ManualExecuteJob(jobId string) error {
+	// 查询任务配置
+	value, err := manager.node.etcd.Get(JobConfPath + jobId)
+	if err != nil {
+		return fmt.Errorf("查询任务配置出现异常: %w", err)
+	}
+
+	// 任务配置是否为空
+	if len(value) == 0 {
+		return errors.New("此任务配置内容为空")
+	}
+
+	var conf *JobConf
+	conf, err = UnpackJobConf(value)
+	if err != nil {
+		return fmt.Errorf("非法的任务配置内容: %w", err)
+	}
+
+	// build job snapshot
+	snapshotId := GenerateSerialNo() + conf.Id
+	snapshot := &JobSnapshot{
+		Id:         snapshotId,
+		JobId:      conf.Id,
+		Name:       conf.Name,
+		Group:      conf.Group,
+		Cron:       conf.Cron,
+		Target:     conf.Target,
+		Params:     conf.Params,
+		Mobile:     conf.Mobile,
+		Remark:     conf.Remark,
+		CreateTime: ToDateString(time.Now()),
+	}
+	return manager.ManualExecute(snapshot)
+}
+
+func (manager *JobManager) ManualExecute(snapshot *JobSnapshot) error {
+	var (
+		client  *Client
+		success bool
+		value   []byte
+	)
+
+	// select a execute  job client for group
+	client, err := manager.node.groupManager.selectClient(snapshot.Group)
+	if err != nil {
+		return fmt.Errorf("没有找到可以执行此任务的作业节点: %w", err)
+	}
+
+	// build the job snapshot path
+	snapshotPath := fmt.Sprintf(JobClientSnapshotPath, snapshot.Group, client.name)
+
+	// build job snapshot
+	if len(snapshot.Id) == 0 {
+		snapshot.Id = GenerateSerialNo()
+	}
+	snapshot.Ip = client.name
+
+	// park the job snapshot
+	if value, err = PackJobSnapshot(snapshot); err != nil {
+		return err
+	}
+
+	// dispatch the job snapshot the client
+	success, _, err = manager.node.etcd.PutNotExist(snapshotPath, string(value))
+	if err != nil {
+		return err
+	}
+	if !success {
+		return errors.New("手动执行任务失败, 请重试")
+	}
+	return err
 }

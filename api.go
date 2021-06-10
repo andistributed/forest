@@ -17,18 +17,13 @@ import (
 	"github.com/webx-top/echo/middleware/session"
 )
 
-type ApiAuth struct {
-	Auth   func(*InputLogin) error
-	JWTKey string
-}
-
 type JobAPI struct {
 	node *JobNode
 	echo *echo.Echo
-	auth *ApiAuth
+	auth *APIAuth
 }
 
-func NewJobAPi(node *JobNode, auth *ApiAuth) (api *JobAPI) {
+func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	api = &JobAPI{
 		node: node,
 		auth: auth,
@@ -245,7 +240,7 @@ func (api *JobAPI) editJob(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if err = api.node.manager.editJob(jobConf); err != nil {
+	if err = api.node.manager.EditJob(jobConf); err != nil {
 		message = err.Error()
 		goto ERROR
 	}
@@ -263,7 +258,7 @@ func (api *JobAPI) jobList(context echo.Context) (err error) {
 		jobConfs []*JobConf
 	)
 
-	if jobConfs, err = api.node.manager.jobList(); err != nil {
+	if jobConfs, err = api.node.manager.JobList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
 	return context.JSON(Result{Code: 0, Data: jobConfs, Message: "查询成功"})
@@ -287,7 +282,7 @@ func (api *JobAPI) deleteJob(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if err = api.node.manager.deleteJob(jobConf); err != nil {
+	if err = api.node.manager.DeleteJob(jobConf); err != nil {
 		message = err.Error()
 		goto ERROR
 	}
@@ -321,7 +316,7 @@ func (api *JobAPI) addGroup(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if err = api.node.manager.addGroup(groupConf); err != nil {
+	if err = api.node.manager.AddGroup(groupConf); err != nil {
 		message = err.Error()
 		goto ERROR
 	}
@@ -355,7 +350,7 @@ func (api *JobAPI) editGroup(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if err = api.node.manager.editGroup(groupConf); err != nil {
+	if err = api.node.manager.EditGroup(groupConf); err != nil {
 		message = err.Error()
 		goto ERROR
 	}
@@ -384,7 +379,7 @@ func (api *JobAPI) deleteGroup(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if err = api.node.manager.deleteGroup(groupConf); err != nil {
+	if err = api.node.manager.DeleteGroup(groupConf); err != nil {
 		message = err.Error()
 		goto ERROR
 	}
@@ -402,7 +397,7 @@ func (api *JobAPI) groupList(context echo.Context) (err error) {
 		groupConfs []*GroupConf
 	)
 
-	if groupConfs, err = api.node.manager.groupList(); err != nil {
+	if groupConfs, err = api.node.manager.GroupList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
 	return context.JSON(Result{Code: 0, Data: groupConfs, Message: "查询成功"})
@@ -417,7 +412,7 @@ func (api *JobAPI) nodeList(context echo.Context) (err error) {
 		nodeNames []string
 	)
 
-	if nodeNames, err = api.node.manager.nodeList(); err != nil {
+	if nodeNames, err = api.node.manager.NodeList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
 
@@ -680,17 +675,7 @@ ERROR:
 
 // manual execute
 func (api *JobAPI) manualExecute(context echo.Context) (err error) {
-
-	var (
-		conf         *JobConf
-		value        []byte
-		client       *Client
-		snapshotPath string
-		snapshot     *JobSnapshot
-		success      bool
-	)
-
-	conf = new(JobConf)
+	conf := new(JobConf)
 	if err = context.MustBind(conf); err != nil {
 		return context.JSON(Result{Code: -1, Message: "非法的参数"})
 	}
@@ -700,57 +685,9 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 		return context.JSON(Result{Code: -1, Message: "此任务配置不存在"})
 	}
 
-	// 查询任务配置
-	if value, err = api.node.etcd.Get(JobConfPath + conf.Id); err != nil {
-		return context.JSON(Result{Code: -1, Message: "查询任务配置出现异常:" + err.Error()})
-	}
-
-	// 任务配置是否为空
-	if len(value) == 0 {
-		return context.JSON(Result{Code: -1, Message: "此任务配置内容为空"})
-	}
-
-	if conf, err = UnpackJobConf(value); err != nil {
-		return context.JSON(Result{Code: -1, Message: "非法的任务配置内容"})
-	}
-
-	// select a execute  job client for group
-	if client, err = api.node.groupManager.selectClient(conf.Group); err != nil {
-		return context.JSON(Result{Code: -1, Message: "没有找到可以执行此任务的作业节点"})
-	}
-
-	// build the job snapshot path
-	snapshotPath = fmt.Sprintf(JobClientSnapshotPath, conf.Group, client.name)
-
-	// build job snapshot
-	snapshotId := GenerateSerialNo() + conf.Id
-	snapshot = &JobSnapshot{
-		Id:         snapshotId,
-		JobId:      conf.Id,
-		Name:       conf.Name,
-		Ip:         client.name,
-		Group:      conf.Group,
-		Cron:       conf.Cron,
-		Target:     conf.Target,
-		Params:     conf.Params,
-		Mobile:     conf.Mobile,
-		Remark:     conf.Remark,
-		CreateTime: ToDateString(time.Now()),
-	}
-
-	// park the job snapshot
-	if value, err = PackJobSnapshot(snapshot); err != nil {
+	err = api.node.manager.ManualExecuteJob(conf.Id)
+	if err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
-	}
-
-	// dispatch the job snapshot the client
-	if success, _, err = api.node.etcd.
-		PutNotExist(snapshotPath, string(value)); err != nil {
-		return context.JSON(Result{Code: -1, Message: err.Error()})
-	}
-
-	if !success {
-		return context.JSON(Result{Code: -1, Message: "手动执行任务失败,请重试"})
 	}
 
 	return context.JSON(Result{Code: 0, Message: "手动执行任务请求已提交"})

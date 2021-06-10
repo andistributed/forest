@@ -277,7 +277,7 @@ func (sch *JobScheduler) trySync() {
 	}()
 
 	// load all job conf list
-	if jobConfs, err = sch.node.manager.jobList(); err != nil {
+	if jobConfs, err = sch.node.manager.JobList(); err != nil {
 		return
 	}
 

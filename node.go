@@ -2,6 +2,7 @@ package forest
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -60,20 +61,13 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 		listeners:    []NodeStateChangeListener{},
 		once:         sync.Once{},
 	}
-	node.dbSettings, err = mysql.ParseURL(dsn)
-	if err != nil {
-		return
+	if len(dsn) == 0 {
+		dsn = os.Getenv(`FOREST_DSN`)
 	}
-	node.once.Do(func() {
-		node.db, err = mysql.Open(node.dbSettings)
-		if err != nil {
-			node.db, err = node.autoCreateDatabase(err)
+	if len(dsn) > 0 {
+		if err := node.SetDSN(dsn); err != nil {
+			log.Error(err)
 		}
-	})
-	if err != nil {
-		log.Error(err)
-		err = nil
-		node.once = sync.Once{}
 	}
 	node.failOver = NewJobSnapshotFailOver(node)
 	node.collection = NewJobCollection(node)
@@ -94,6 +88,39 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 	return
 }
 
+func (node *JobNode) Manager() *JobManager {
+	return node.manager
+}
+
+func (node *JobNode) ETCD() *etcd.Etcd {
+	return node.etcd
+}
+
+func (node *JobNode) SetDBConfig(conf mysql.ConnectionURL) (err error) {
+	node.dbSettings = conf
+	err = node.initConnectDB()
+	return
+}
+
+func (node *JobNode) SetDSN(dsn string) (err error) {
+	node.dbSettings, err = mysql.ParseURL(dsn)
+	if err == nil {
+		err = node.initConnectDB()
+	}
+	return
+}
+
+func (node *JobNode) initConnectDB() (err error) {
+	if node.db != nil {
+		node.db.Close()
+	}
+	node.db, err = mysql.Open(node.dbSettings)
+	if err != nil {
+		node.db, err = node.autoCreateDatabase(err)
+	}
+	return
+}
+
 func (node *JobNode) DB() sqlbuilder.Database {
 	node.once.Do(node.connectDB)
 	return node.db
@@ -104,6 +131,9 @@ func (node *JobNode) UseTable(table string) db.Collection {
 }
 
 func (node *JobNode) connectDB() {
+	if node.db != nil {
+		return
+	}
 	db, err := mysql.Open(node.dbSettings)
 	if err != nil {
 		log.Fatal(err)
@@ -143,8 +173,8 @@ func (node *JobNode) autoCreateDatabase(err error) (sqlbuilder.Database, error) 
 }
 
 // StartAPIServer create a job http api and start service
-func (node *JobNode) StartAPIServer(auth *ApiAuth, address string, opts ...engine.ConfigSetter) {
-	api := NewJobAPi(node, auth)
+func (node *JobNode) StartAPIServer(auth *APIAuth, address string, opts ...engine.ConfigSetter) {
+	api := NewJobAPI(node, auth)
 	api.Start(address, opts...)
 }
 

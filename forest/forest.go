@@ -1,10 +1,7 @@
 package main
 
 import (
-	"errors"
 	"flag"
-	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -26,10 +23,6 @@ const (
 	defaultEtcdKey      = `` // ca.key
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
-)
-
-var (
-	errPasswordInvalid = errors.New("密码不正确")
 )
 
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root
@@ -82,40 +75,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := newAPIAuth(*admName, *admPassword, *apiJWTKey)
+	auth := forest.NewAPIAuth(*admName, *admPassword, *apiJWTKey)
 	go startAPIServer(node, auth, *apiAddress, *apiCertFile, *apiKeyFile)
 
 	node.Bootstrap()
 }
 
-func startAPIServer(node *forest.JobNode, auth *forest.ApiAuth, httpAddress, apiCertFile, apiKeyFile string) {
+func startAPIServer(node *forest.JobNode, auth *forest.APIAuth, httpAddress, apiCertFile, apiKeyFile string) {
 	var httpServerOpts []engine.ConfigSetter
 	httpServerOpts = append(httpServerOpts, engine.TLSCertFile(apiCertFile))
 	httpServerOpts = append(httpServerOpts, engine.TLSKeyFile(apiKeyFile))
 	node.StartAPIServer(auth, httpAddress, httpServerOpts...)
-}
-
-func newAPIAuth(admName, admPassword, jwtKey string) *forest.ApiAuth {
-	if len(admPassword) == 0 {
-		admPassword = os.Getenv("FOREST_ADMIN_PASSWORD")
-	}
-	if len(admName) == 0 {
-		admName = os.Getenv("FOREST_ADMIN_NAME")
-	}
-	if len(admName) == 0 {
-		admName = `admin`
-	}
-	auth := &forest.ApiAuth{
-		Auth: func(user *forest.InputLogin) error {
-			if user.Username != admName {
-				return fmt.Errorf("用户名不正确: %s", user.Username)
-			}
-			if user.Password != admPassword {
-				return errPasswordInvalid
-			}
-			return nil
-		},
-		JWTKey: jwtKey,
-	}
-	return auth
 }
