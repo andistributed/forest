@@ -45,9 +45,6 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	}
 	e.SetHTTPErrorHandler(func(err error, c echo.Context) {
 		r := Result{Code: -1, Message: err.Error()}
-		if rawErr, ok := err.(*echo.HTTPError); ok && rawErr.Raw() != nil {
-			err = rawErr.Raw()
-		}
 		if errors.Is(err, mwjwt.ErrJWTMissing) || errors.Is(err, echo.ErrUnauthorized) {
 			r.Code = -2
 			r.Message = `请重新登录`
@@ -115,7 +112,7 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 		message = err.Error()
 		goto ERROR
 	}
-	now = time.Now()
+	now = time.Now().Local()
 	ts = int64(now.Second())
 	expiresAt = ts + 30*86400
 	claims = &jwt.StandardClaims{
@@ -124,7 +121,7 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 		Id:        user.Username,
 		IssuedAt:  ts,
 		Issuer:    `forest`,
-		NotBefore: ts,
+		NotBefore: ts - 86400,
 		Subject:   user.Username,
 	}
 	signed, err = mwjwt.BuildStandardSignedString(claims, []byte(api.auth.JWTKey))
