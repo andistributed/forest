@@ -113,7 +113,7 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 		goto ERROR
 	}
 	now = time.Now().Local()
-	ts = int64(now.Second())
+	ts = now.Unix()
 	expiresAt = ts + 30*86400
 	claims = &jwt.StandardClaims{
 		Audience:  context.Session().MustID(),
