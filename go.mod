@@ -14,8 +14,6 @@ require (
 	github.com/webx-top/com v0.2.2
 	github.com/webx-top/db v1.4.2
 	github.com/webx-top/echo v2.14.4+incompatible
-	go.etcd.io/etcd/client/v3 v3.5.0-rc.0
+	go.etcd.io/etcd/client/v3 v3.5.0-rc.1
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
-	google.golang.org/genproto v0.0.0-20210608205507-b6d2f5bf0d7d // indirect
 )
