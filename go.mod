@@ -15,5 +15,4 @@ require (
 	github.com/webx-top/db v1.4.2
 	github.com/webx-top/echo v2.14.4+incompatible
 	go.etcd.io/etcd/client/v3 v3.5.0-rc.1
-	go.uber.org/multierr v1.7.0 // indirect
 )
