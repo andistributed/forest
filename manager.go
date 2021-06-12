@@ -11,7 +11,9 @@ import (
 )
 
 const (
-	JobConfPath = "/forest/server/conf/"
+	JobConfPath     = "/forest/server/conf/"
+	JobKillerRoot   = "/forest/client/killer/snapshot/"
+	JobKillerPrefix = "/forest/client/killer/snapshot/%s/%s/" // %s:client.group %s:client.ip  +snapshot.id
 )
 
 type JobManager struct {
@@ -437,4 +439,26 @@ func (manager *JobManager) ManualExecute(snapshot *JobSnapshot) error {
 		snapshot.CreateTime = ToDateString(time.Now())
 	}
 	return manager.node.exec.handleJobSnapshot(snapshot)
+}
+
+func (manager *JobManager) Kill(snapshot *JobSnapshot) (err error) {
+	var success bool
+	snapshotKillerPath := fmt.Sprintf(JobKillerPrefix, snapshot.Group, snapshot.Ip)
+	success, _, err = manager.node.etcd.PutNotExist(snapshotKillerPath+snapshot.Id, ``)
+	if err != nil {
+		return
+	}
+
+	if !success {
+		err = errors.New("已经执行过了")
+	}
+	return
+}
+
+func (manager *JobManager) ClearKiller(group ...string) (err error) {
+	killerPath := JobKillerRoot
+	if len(group) > 0 && len(group[0]) > 0 {
+		killerPath += group[0] + `/`
+	}
+	return manager.node.etcd.DeleteWithPrefixKey(killerPath)
 }
