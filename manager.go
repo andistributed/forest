@@ -427,40 +427,14 @@ func (manager *JobManager) ManualExecuteJob(jobId string) error {
 	return manager.ManualExecute(snapshot)
 }
 
+// ManualExecute 手动执行任务
 func (manager *JobManager) ManualExecute(snapshot *JobSnapshot) error {
-	var (
-		client  *Client
-		success bool
-		value   []byte
-	)
-
-	// select a execute  job client for group
-	client, err := manager.node.groupManager.selectClient(snapshot.Group)
-	if err != nil {
-		return fmt.Errorf("没有找到可以执行此任务的作业节点: %w", err)
-	}
-
-	// build the job snapshot path
-	snapshotPath := fmt.Sprintf(JobClientSnapshotPath, snapshot.Group, client.name)
-
 	// build job snapshot
 	if len(snapshot.Id) == 0 {
 		snapshot.Id = GenerateSerialNo()
 	}
-	snapshot.Ip = client.name
-
-	// pack the job snapshot
-	if value, err = PackJobSnapshot(snapshot); err != nil {
-		return err
+	if len(snapshot.CreateTime) == 0 {
+		snapshot.CreateTime = ToDateString(time.Now())
 	}
-
-	// dispatch the job snapshot the client
-	success, _, err = manager.node.etcd.PutNotExist(snapshotPath, string(value))
-	if err != nil {
-		return err
-	}
-	if !success {
-		return errors.New("手动执行任务失败, 请重试")
-	}
-	return err
+	return manager.node.exec.handleJobSnapshot(snapshot)
 }
