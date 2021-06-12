@@ -503,7 +503,7 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		message   string
 		keys      [][]byte
 		values    [][]byte
-		snapshots []*JobSnapshot
+		snapshots []*JobSnapshotWithPath
 		prefix    string
 	)
 
@@ -526,13 +526,12 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	snapshots = make([]*JobSnapshot, 0)
+	snapshots = make([]*JobSnapshotWithPath, 0)
 	if len(keys) == 0 {
 		return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成功"})
 	}
 
 	for key, value := range values {
-		fmt.Println(string(keys[key]))
 
 		if len(value) == 0 {
 			continue
@@ -544,7 +543,10 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 			continue
 		}
 
-		snapshots = append(snapshots, snapshot)
+		snapshots = append(snapshots, &JobSnapshotWithPath{
+			JobSnapshot: snapshot,
+			Path:        string(keys[key]),
+		})
 	}
 
 	return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成功"})

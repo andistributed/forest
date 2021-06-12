@@ -81,6 +81,11 @@ type SchedulePlan struct {
 	Version    int       `json:"version"`
 }
 
+type JobSnapshotWithPath struct {
+	*JobSnapshot
+	Path string
+}
+
 type JobSnapshot struct {
 	Id         string `json:"id"`
 	JobId      string `json:"jobId"`

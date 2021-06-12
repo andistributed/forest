@@ -36,20 +36,58 @@ func (f *JobSnapshotFailOver) loop() {
 
 // handle job client delete event
 func (f *JobSnapshotFailOver) handleJobClientDeleteEvent(event *JobClientDeleteEvent) {
+	prefixKey := fmt.Sprintf(JobClientSnapshotPath, event.Group.name, event.Client.name)
+	handler := f.generateJobSnapshotDeleteHandler(event, prefixKey)
+	for i := 1; i <= 10; i++ {
+		err := f.node.etcd.GetWithPrefixKeyChunk(prefixKey, 501, handler)
+		if err == nil {
+			return
+		}
+		log.Errorf("the fail client: %v for path: %s, error must retry", event.Client.name, prefixKey)
+		time.Sleep(time.Second * time.Duration(i))
+	}
+}
+
+func (f *JobSnapshotFailOver) generateJobSnapshotDeleteHandler(event *JobClientDeleteEvent, prefixKey string) func(key, val []byte) error {
+	return func(key, val []byte) error {
+		client, err := event.Group.selectClient()
+		if err != nil {
+			log.Warnf("%v", err)
+			return nil
+		}
+
+		from := string(key)
+		value := string(val)
+
+		// 新地址
+		to := fmt.Sprintf(JobClientSnapshotPath, event.Group.name, client.name) + strings.TrimPrefix(from, prefixKey)
+
+		//  transfer the kv
+		if success, err := f.node.etcd.Transfer(from, to, value); success {
+			log.Infof("successfully transferred from %s to %s", from, to)
+		} else {
+			log.Errorf("transfer from %s to %s failed: %v", from, to, err)
+		}
+		return nil
+	}
+}
+
+func (f *JobSnapshotFailOver) handleJobClientDeleteEventLite(event *JobClientDeleteEvent) {
 
 	var (
-		keys    [][]byte
-		values  [][]byte
-		err     error
-		client  *Client
-		success bool
+		keys   [][]byte
+		values [][]byte
+		err    error
 	)
 
-RETRY:
 	prefixKey := fmt.Sprintf(JobClientSnapshotPath, event.Group.name, event.Client.name)
-	if keys, values, err = f.node.etcd.GetWithPrefixKey(prefixKey); err != nil {
+	handler := f.generateJobSnapshotDeleteHandler(event, prefixKey)
+
+RETRY:
+	keys, values, err = f.node.etcd.GetWithPrefixKey(prefixKey)
+	if err != nil {
 		log.Errorf("the fail client: %v for path: %s, error must retry", event.Client.name, prefixKey)
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		goto RETRY
 	}
 
@@ -59,23 +97,8 @@ RETRY:
 	}
 
 	for pos := 0; pos < len(keys); pos++ {
-		if client, err = event.Group.selectClient(); err != nil {
-			log.Warnf("%v", err)
-			continue
+		if err = handler(keys[pos], values[pos]); err != nil {
+			break
 		}
-
-		from := string(keys[pos])
-		value := string(values[pos])
-
-		// 新地址
-		to := fmt.Sprintf(JobClientSnapshotPath, event.Group.name, client.name) + strings.TrimPrefix(from, prefixKey)
-
-		//  transfer the kv
-		if success, err = f.node.etcd.Transfer(from, to, value); success {
-			log.Infof("successfully transferred from %s to %s", from, to)
-		} else {
-			log.Errorf("transfer from %s to %s failed: %v", from, to, err)
-		}
-
 	}
 }
