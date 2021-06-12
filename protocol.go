@@ -1,6 +1,7 @@
 package forest
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/robfig/cron"
@@ -94,6 +95,10 @@ type JobSnapshot struct {
 	CreateTime string `json:"createTime"`
 }
 
+func (s *JobSnapshot) Path() string {
+	return fmt.Sprintf(JobClientSnapshotPath, s.Group, s.Ip)
+}
+
 type QueryClientParam struct {
 	Group string `json:"group"`
 }
@@ -132,6 +137,10 @@ type JobExecuteSnapshot struct {
 	Times      int    `json:"times" db:"times"`
 	Status     int    `json:"status" db:"status"`
 	Result     string `json:"result" db:"result"`
+}
+
+func (s *JobExecuteSnapshot) Path() string {
+	return JobExecuteStatusCollectionPath + `/` + s.Group + `/` + s.Ip + `/`
 }
 
 type QueryExecuteSnapshotParam struct {

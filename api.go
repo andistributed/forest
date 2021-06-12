@@ -520,7 +520,6 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		} else {
 			prefix = fmt.Sprintf(JobSnapshotGroupPath, query.Group)
 		}
-		panic(prefix)
 	}
 	if keys, values, err = api.node.etcd.GetWithPrefixKeyLimit(prefix, 500); err != nil {
 		message = err.Error()
@@ -532,7 +531,8 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		return context.JSON(Result{Code: 0, Data: snapshots, Message: "查询成功"})
 	}
 
-	for _, value := range values {
+	for key, value := range values {
+		fmt.Println(string(keys[key]))
 
 		if len(value) == 0 {
 			continue

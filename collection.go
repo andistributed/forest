@@ -34,16 +34,12 @@ func NewJobCollection(node *JobNode) (c *JobCollection) {
 
 // watch
 func (c *JobCollection) watch() {
-
 	keyChangeEventResponse := c.node.etcd.WatchWithPrefixKey(JobExecuteStatusCollectionPath)
 	log.Infof("the job collection success watch for path: %s", JobExecuteStatusCollectionPath)
 	go func() {
-
 		for event := range keyChangeEventResponse.Event {
-
 			c.handleJobExecuteStatusCollectionEvent(event)
 		}
-
 	}()
 }
 
@@ -182,7 +178,6 @@ func (c *JobCollection) loop() {
 	timer := time.NewTimer(10 * time.Minute)
 	defer timer.Stop()
 	for {
-
 		key := JobExecuteStatusCollectionPath
 		select {
 		case <-timer.C:
@@ -199,9 +194,7 @@ func (c *JobCollection) loop() {
 			}
 
 			for pos, size := 0, len(keys); pos < size; pos++ {
-
 				executeSnapshot, err := UnpackJobExecuteSnapshot(values[pos])
-
 				if err != nil {
 					log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", values[pos], err)
 					_ = c.node.etcd.Delete(string(keys[pos]))
@@ -214,10 +207,7 @@ func (c *JobCollection) loop() {
 					path := string(keys[pos])
 					c.handleJobExecuteSnapshot(path, executeSnapshot)
 				}
-
 			}
-
 		}
 	}
-
 }
