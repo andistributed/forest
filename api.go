@@ -477,7 +477,7 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	groupPath = fmt.Sprintf("%s%s", GroupConfPath, query.Group)
+	groupPath = GroupConfPath + query.Group
 	if group = api.node.groupManager.groups[groupPath]; group == nil {
 		message = "此任务集群不存在"
 		goto ERROR
@@ -514,13 +514,12 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 	}
 
 	prefix = JobSnapshotPath
-	if query.Group != "" && query.Id != "" && query.Ip != "" {
-		prefix = fmt.Sprintf(JobClientSnapshotPath, query.Group, query.Ip)
-		prefix = fmt.Sprintf("%s/%s", prefix, query.Id)
-	} else if query.Group != "" && query.Ip != "" {
-		prefix = fmt.Sprintf(JobClientSnapshotPath, query.Group, query.Ip)
-	} else if query.Group != "" && query.Ip == "" {
-		prefix = fmt.Sprintf(JobSnapshotGroupPath, query.Group)
+	if len(query.Group) > 0 {
+		if len(query.Ip) > 0 {
+			prefix = fmt.Sprintf(JobClientSnapshotPath, query.Group, query.Ip) + query.Id
+		} else {
+			prefix = fmt.Sprintf(JobSnapshotGroupPath, query.Group)
+		}
 	}
 
 	if keys, values, err = api.node.etcd.GetWithPrefixKeyLimit(prefix, 500); err != nil {
@@ -574,8 +573,7 @@ func (api *JobAPI) snapshotDelete(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	key = fmt.Sprintf(JobClientSnapshotPath, query.Group, query.Ip)
-	key = fmt.Sprintf("%s/%s", key, query.Id)
+	key = fmt.Sprintf(JobClientSnapshotPath, query.Group, query.Ip) + query.Id
 	if err = api.node.etcd.Delete(key); err != nil {
 		message = err.Error()
 		goto ERROR
