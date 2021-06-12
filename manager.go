@@ -449,7 +449,7 @@ func (manager *JobManager) ManualExecute(snapshot *JobSnapshot) error {
 	}
 	snapshot.Ip = client.name
 
-	// park the job snapshot
+	// pack the job snapshot
 	if value, err = PackJobSnapshot(snapshot); err != nil {
 		return err
 	}
