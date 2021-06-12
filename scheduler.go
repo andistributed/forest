@@ -268,7 +268,7 @@ func (sch *JobScheduler) trySync() {
 		return
 	}
 	now := time.Now()
-	log.Warn("start sync the schedule plan....")
+	log.Info("start sync the schedule plan....")
 	sch.lk.Lock()
 	defer sch.lk.Unlock()
 	sch.syncStatus = true

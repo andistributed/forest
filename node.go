@@ -53,7 +53,7 @@ type NodeStateChangeListener interface {
 func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err error) {
 	node = &JobNode{
 		id:           id,
-		registerPath: fmt.Sprintf("%s%s", JobNodePath, id),
+		registerPath: JobNodePath + id,
 		electPath:    JobNodeElectPath,
 		etcd:         etcd,
 		state:        NodeFollowerState,
@@ -196,12 +196,26 @@ func (node *JobNode) changeState(state int) {
 
 // start register node
 func (node *JobNode) initNode() {
-	txResponse, err := node.registerJobNode()
-	if err != nil {
-		log.Fatalf("the job node: %s, fail register to: %s", node.id, node.registerPath)
+	var (
+		txResponse *etcdresponse.TxResponse
+		err        error
+	)
+	for i := 1; i <= 10; i++ {
+		txResponse, err = node.registerJobNode()
+		if err != nil {
+			err = fmt.Errorf("the job node: %s, fail register to: %s error: %w", node.id, node.registerPath, err)
+			time.Sleep(time.Second * time.Duration(i))
+			continue
+		}
+		if !txResponse.Success {
+			err = fmt.Errorf("the job node: %s, fail register to: %s, the job node id exist", node.id, node.registerPath)
+			time.Sleep(time.Second * time.Duration(i))
+			continue
+		}
+		break
 	}
-	if !txResponse.Success {
-		log.Fatalf("the job node: %s, fail register to: %s, the job node id exist", node.id, node.registerPath)
+	if err != nil {
+		log.Fatal(err)
 	}
 	log.Infof("the job node: %s, success register to: %s", node.id, node.registerPath)
 	node.watchRegisterJobNode()

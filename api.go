@@ -520,8 +520,8 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 		} else {
 			prefix = fmt.Sprintf(JobSnapshotGroupPath, query.Group)
 		}
+		panic(prefix)
 	}
-
 	if keys, values, err = api.node.etcd.GetWithPrefixKeyLimit(prefix, 500); err != nil {
 		message = err.Error()
 		goto ERROR
