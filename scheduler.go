@@ -302,15 +302,12 @@ func (sch *JobScheduler) trySync() {
 
 // check is old plan?
 func (sch *JobScheduler) existPlan(id string, jobConfs []*JobConf) bool {
-	var ok bool
 	for _, conf := range jobConfs {
 		if conf.Id == id {
-			ok = true
-			break
+			return true
 		}
-
 	}
-	return ok
+	return false
 }
 
 func (sch *JobScheduler) handleJobConfSync(conf *JobConf) {
