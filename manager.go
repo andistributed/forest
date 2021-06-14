@@ -206,7 +206,7 @@ func (manager *JobManager) EditJob(jobConf *JobConf) (err error) {
 // delete job conf
 func (manager *JobManager) DeleteJob(jobConf *JobConf) (err error) {
 	var value []byte
-	if jobConf.Id == "" {
+	if len(jobConf.Id) == 0 {
 		err = errors.New("此记录任务配置记录不存在")
 		return
 	}
