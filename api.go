@@ -61,7 +61,7 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	e.Post("/job/edit", api.editJob)
 	e.Post("/job/delete", api.deleteJob)
 	e.Post("/job/list", api.jobList)
-	e.Post("/job/execute", api.manualExecute)
+	e.Post("/job/execute", api.manualExecute) // 手动执行任务
 	e.Post("/group/add", api.addGroup)
 	e.Post("/group/edit", api.editGroup)
 	e.Post("/group/delete", api.deleteGroup)
@@ -71,6 +71,7 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	e.Post("/client/list", api.clientList)
 	e.Post("/snapshot/list", api.snapshotList)
 	e.Post("/snapshot/delete", api.snapshotDelete)
+	e.Post("/snapshot/add", api.snapshotAdd) // 添加一次性临时任务
 	e.Post("/execute/snapshot/list", api.executeSnapshotList)
 	api.echo = e
 	return
@@ -96,11 +97,11 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 		message = "请求参数不能为空"
 		goto ERROR
 	}
-	if user.Username == "" {
+	if len(user.Username) == 0 {
 		message = "用户名不能为空"
 		goto ERROR
 	}
-	if user.Password == "" {
+	if len(user.Password) == 0 {
 		message = "用户密码为空"
 		goto ERROR
 	}
@@ -144,25 +145,23 @@ func (api *JobAPI) logout(context echo.Context) (err error) {
 
 // add a new job
 func (api *JobAPI) addJob(context echo.Context) (err error) {
-	var (
-		message string
-	)
+	var message string
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
 		message = "请求参数不能为空"
 		goto ERROR
 	}
 
-	if jobConf.Name == "" {
+	if len(jobConf.Name) == 0 {
 		message = "任务名称不能为空"
 		goto ERROR
 	}
-	if jobConf.Group == "" {
+	if len(jobConf.Group) == 0 {
 		message = "任务分组不能为空"
 		goto ERROR
 	}
 
-	if jobConf.Cron == "" {
+	if len(jobConf.Cron) == 0 {
 		message = "任务Cron表达式不能为空"
 		goto ERROR
 	}
@@ -172,7 +171,7 @@ func (api *JobAPI) addJob(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if jobConf.Target == "" {
+	if len(jobConf.Target) == 0 {
 		message = "任务Target不能为空"
 		goto ERROR
 	}
@@ -195,29 +194,27 @@ ERROR:
 
 // edit a job
 func (api *JobAPI) editJob(context echo.Context) (err error) {
-	var (
-		message string
-	)
+	var message string
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
 		message = "请求参数不能为空"
 		goto ERROR
 	}
 
-	if jobConf.Id == "" {
+	if len(jobConf.Id) == 0 {
 		message = "此任务记录不存在"
 		goto ERROR
 	}
-	if jobConf.Name == "" {
+	if len(jobConf.Name) == 0 {
 		message = "任务名称不能为空"
 		goto ERROR
 	}
-	if jobConf.Group == "" {
+	if len(jobConf.Group) == 0 {
 		message = "任务分组不能为空"
 		goto ERROR
 	}
 
-	if jobConf.Cron == "" {
+	if len(jobConf.Cron) == 0 {
 		message = "任务Cron表达式不能为空"
 		goto ERROR
 	}
@@ -227,7 +224,7 @@ func (api *JobAPI) editJob(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if jobConf.Target == "" {
+	if len(jobConf.Target) == 0 {
 		message = "任务Target不能为空"
 		goto ERROR
 	}
@@ -250,11 +247,7 @@ ERROR:
 
 // job  list
 func (api *JobAPI) jobList(context echo.Context) (err error) {
-
-	var (
-		jobConfs []*JobConf
-	)
-
+	var jobConfs []*JobConf
 	if jobConfs, err = api.node.manager.JobList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
@@ -263,18 +256,14 @@ func (api *JobAPI) jobList(context echo.Context) (err error) {
 
 // delete a job
 func (api *JobAPI) deleteJob(context echo.Context) (err error) {
-
-	var (
-		message string
-	)
-
+	var message string
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
 		message = "请求参数不能为空"
 		goto ERROR
 	}
 
-	if jobConf.Id == "" {
+	if len(jobConf.Id) == 0 {
 		message = "此任务记录不存在"
 		goto ERROR
 	}
@@ -292,23 +281,19 @@ ERROR:
 
 // add a job group
 func (api *JobAPI) addGroup(context echo.Context) (err error) {
-
-	var (
-		message string
-	)
-
+	var message string
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
 		message = "请求参数不能为空"
 		goto ERROR
 	}
 
-	if groupConf.Name == "" {
+	if len(groupConf.Name) == 0 {
 		message = "任务集群名称不能为空"
 		goto ERROR
 	}
 
-	if groupConf.Remark == "" {
+	if len(groupConf.Remark) == 0 {
 		message = "任务集群描述不能为空"
 		goto ERROR
 	}
@@ -337,12 +322,12 @@ func (api *JobAPI) editGroup(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if groupConf.Name == "" {
+	if len(groupConf.Name) == 0 {
 		message = "任务集群名称不能为空"
 		goto ERROR
 	}
 
-	if groupConf.Remark == "" {
+	if len(groupConf.Remark) == 0 {
 		message = "任务集群描述不能为空"
 		goto ERROR
 	}
@@ -360,27 +345,20 @@ ERROR:
 
 // delete a group
 func (api *JobAPI) deleteGroup(context echo.Context) (err error) {
-
-	var (
-		message string
-	)
-
+	var message string
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
 		message = "请求参数不能为空"
 		goto ERROR
 	}
-
-	if groupConf.Name == "" {
+	if len(groupConf.Name) == 0 {
 		message = "任务集群名称不能为空"
 		goto ERROR
 	}
-
 	if err = api.node.manager.DeleteGroup(groupConf); err != nil {
 		message = err.Error()
 		goto ERROR
 	}
-
 	return context.JSON(Result{Code: 0, Data: groupConf, Message: "删除成功"})
 
 ERROR:
@@ -389,11 +367,7 @@ ERROR:
 
 // job group list
 func (api *JobAPI) groupList(context echo.Context) (err error) {
-
-	var (
-		groupConfs []*GroupConf
-	)
-
+	var groupConfs []*GroupConf
 	if groupConfs, err = api.node.manager.GroupList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
@@ -402,55 +376,43 @@ func (api *JobAPI) groupList(context echo.Context) (err error) {
 
 // job node list
 func (api *JobAPI) nodeList(context echo.Context) (err error) {
-
 	var (
 		nodes     []*Node
 		leader    []byte
 		nodeNames []string
 	)
-
 	if nodeNames, err = api.node.manager.NodeList(); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
-
 	if leader, err = api.node.etcd.Get(JobNodeElectPath); err != nil {
 		return context.JSON(Result{Code: -1, Message: err.Error()})
 	}
-
 	if len(nodeNames) == 0 {
 		return context.JSON(Result{Code: 0, Data: nodes, Message: "查询成功"})
 	}
-
-	nodes = make([]*Node, 0)
-
-	for _, name := range nodeNames {
-
+	nodes = make([]*Node, len(nodeNames))
+	for index, name := range nodeNames {
 		if name == string(leader) {
-			nodes = append(nodes, &Node{Name: name, State: NodeLeaderState})
+			nodes[index] = &Node{Name: name, State: NodeLeaderState}
 		} else {
-			nodes = append(nodes, &Node{Name: name, State: NodeFollowerState})
+			nodes[index] = &Node{Name: name, State: NodeFollowerState}
 		}
-
 	}
-
 	return context.JSON(Result{Code: 0, Data: nodes, Message: "查询成功"})
 }
 
 func (api *JobAPI) planList(context echo.Context) (err error) {
-
-	var (
-		plans []*SchedulePlan
-	)
-
+	var plans []*SchedulePlan
 	schedulePlans := api.node.scheduler.schedulePlans
 	if len(schedulePlans) == 0 {
 		return context.JSON(Result{Code: 0, Data: plans})
 	}
 
-	plans = make([]*SchedulePlan, 0)
-
+	plans = make([]*SchedulePlan, len(schedulePlans))
+	var i int
 	for _, p := range schedulePlans {
-		plans = append(plans, p)
+		plans[i] = p
+		i++
 	}
 
 	return context.JSON(Result{Code: 0, Data: plans})
@@ -464,6 +426,7 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 		group     *Group
 		clients   []*JobClient
 		groupPath string
+		i         int
 	)
 
 	query = new(QueryClientParam)
@@ -472,7 +435,7 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if query.Group == "" {
+	if len(query.Group) == 0 {
 		message = "请选择任务集群"
 		goto ERROR
 	}
@@ -483,10 +446,10 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	clients = make([]*JobClient, 0)
-
+	clients = make([]*JobClient, len(group.clients))
 	for _, c := range group.clients {
-		clients = append(clients, &JobClient{Name: c.name, Path: c.path, Group: query.Group})
+		clients[i] = &JobClient{Name: c.name, Path: c.path, Group: query.Group}
+		i++
 	}
 
 	return context.JSON(Result{Code: 0, Data: clients, Message: "查询成功"})
@@ -532,17 +495,13 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 	}
 
 	for key, value := range values {
-
 		if len(value) == 0 {
 			continue
 		}
-
 		var snapshot *JobSnapshot
-
 		if snapshot, err = UnpackJobSnapshot(value); err != nil {
 			continue
 		}
-
 		snapshots = append(snapshots, &JobSnapshotWithPath{
 			JobSnapshot: snapshot,
 			Path:        string(keys[key]),
@@ -570,7 +529,7 @@ func (api *JobAPI) snapshotDelete(context echo.Context) (err error) {
 		goto ERROR
 	}
 
-	if query.Group == "" || query.Id == "" || query.Ip == "" {
+	if len(query.Group) == 0 || len(query.Id) == 0 || len(query.Ip) == 0 {
 		message = "非法的请求参数"
 		goto ERROR
 	}
@@ -612,16 +571,16 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 	}
 
 	snapshots = make([]*JobExecuteSnapshot, 0)
-	if query.Id != "" {
+	if len(query.Id) > 0 {
 		where.AddKV(`id`, query.Id)
 	}
-	if query.Group != "" {
+	if len(query.Group) > 0 {
 		where.AddKV(`group`, query.Group)
 	}
-	if query.Ip != "" {
+	if len(query.Ip) > 0 {
 		where.AddKV(`ip`, query.Ip)
 	}
-	if query.Name != "" {
+	if len(query.Name) > 0 {
 		where.AddKV(`name`, query.Name)
 	}
 	if query.Status != 0 {
@@ -688,4 +647,29 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 	}
 
 	return context.JSON(Result{Code: 0, Message: "手动执行任务请求已提交"})
+}
+
+func (api *JobAPI) snapshotAdd(context echo.Context) (err error) {
+	snapshot := new(JobSnapshot)
+	if err = context.MustBind(snapshot); err != nil {
+		return context.JSON(Result{Code: -1, Message: "非法的参数"})
+	}
+	snapshot.Id = GenerateSerialNo()
+	if len(snapshot.JobId) > 0 {
+		snapshot.JobId = ``
+	}
+	if len(snapshot.Cron) > 0 {
+		snapshot.Cron = ``
+	}
+	if len(snapshot.CreateTime) > 0 {
+		snapshot.CreateTime = ``
+	}
+	if len(snapshot.Group) == 0 {
+		return context.JSON(Result{Code: -1, Message: "group不能为空"})
+	}
+	err = api.node.manager.ManualExecute(snapshot)
+	if err != nil {
+		return context.JSON(Result{Code: -1, Message: err.Error()})
+	}
+	return context.JSON(Result{Code: 0, Message: "临时任务已提交"})
 }
