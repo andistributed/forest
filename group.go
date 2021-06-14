@@ -88,16 +88,13 @@ func (mgr *JobGroupManager) deleteGroup(path string) {
 	)
 	mgr.lk.Lock()
 	defer mgr.lk.Unlock()
-
-	if group, ok = mgr.groups[path]; ok {
+	if group, ok = mgr.groups[path]; !ok {
 		return
 	}
-
 	// cancel watch the clients
-	_ = group.watcher.Close()
+	group.watcher.Close()
 	group.cancelFunc()
 	delete(mgr.groups, path)
-
 	log.Infof("delete a group: %s, for path: %s", group.name, path)
 }
 
