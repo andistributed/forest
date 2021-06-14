@@ -51,8 +51,8 @@ RETRY:
 		return
 	}
 
-	for i := 0; i < len(keys); i++ {
-		jobConf, err := UnpackJobConf(values[i])
+	for _, value := range values {
+		jobConf, err := UnpackJobConf(value)
 		if err != nil {
 			log.Warnf("unpack the job conf error: %#v", err)
 			continue
@@ -97,7 +97,6 @@ func (manager *JobManager) handleJobCreateEvent(value []byte) {
 }
 
 func (manager *JobManager) handleJobUpdateEvent(value []byte) {
-
 	var (
 		err     error
 		jobConf *JobConf
@@ -115,7 +114,6 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 		Type: JobUpdateChangeEvent,
 		Conf: jobConf,
 	})
-
 }
 
 // handle the job delete event
@@ -247,20 +245,19 @@ func (manager *JobManager) DeleteJob(jobConf *JobConf) (err error) {
 // job list
 func (manager *JobManager) JobList() (jobConfs []*JobConf, err error) {
 	var (
-		keys   [][]byte
 		values [][]byte
 	)
-	if keys, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
+	if _, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
 		return
 	}
 
-	if len(keys) == 0 {
+	if len(values) == 0 {
 		return
 	}
 
 	jobConfs = make([]*JobConf, 0)
-	for i := 0; i < len(values); i++ {
-		jobConf, err := UnpackJobConf(values[i])
+	for _, value := range values {
+		jobConf, err := UnpackJobConf(value)
 		if err != nil {
 			log.Errorf("unpack the job conf errror: %#v", err)
 			continue
@@ -348,27 +345,23 @@ func (manager *JobManager) DeleteGroup(groupConf *GroupConf) (err error) {
 // group list
 func (manager *JobManager) GroupList() (groupConfs []*GroupConf, err error) {
 	var (
-		keys   [][]byte
 		values [][]byte
 	)
-	if keys, values, err = manager.node.etcd.GetWithPrefixKey(GroupConfPath); err != nil {
+	if _, values, err = manager.node.etcd.GetWithPrefixKey(GroupConfPath); err != nil {
 		return
 	}
-
-	if len(keys) == 0 {
+	if len(values) == 0 {
 		return
 	}
-
 	groupConfs = make([]*GroupConf, 0)
-	for i := 0; i < len(values); i++ {
-		groupConf, err := UnpackGroupConf(values[i])
+	for _, value := range values {
+		groupConf, err := UnpackGroupConf(value)
 		if err != nil {
 			log.Errorf("unpack the group conf errror: %#v", err)
 			continue
 		}
 
 		groupConfs = append(groupConfs, groupConf)
-
 	}
 	return
 }
@@ -376,20 +369,19 @@ func (manager *JobManager) GroupList() (groupConfs []*GroupConf, err error) {
 // node list
 func (manager *JobManager) NodeList() (nodes []string, err error) {
 	var (
-		keys   [][]byte
 		values [][]byte
 	)
-	if keys, values, err = manager.node.etcd.GetWithPrefixKey(JobNodePath); err != nil {
+	if _, values, err = manager.node.etcd.GetWithPrefixKey(JobNodePath); err != nil {
 		return
 	}
 
-	if len(keys) == 0 {
+	if len(values) == 0 {
 		return
 	}
 
-	nodes = make([]string, 0)
-	for i := 0; i < len(values); i++ {
-		nodes = append(nodes, string(values[i]))
+	nodes = make([]string, len(values))
+	for index, value := range values {
+		nodes[index] = string(value)
 	}
 	return
 }

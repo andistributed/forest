@@ -58,9 +58,9 @@ RETRY:
 		return
 	}
 
-	for i := 0; i < len(keys); i++ {
-		path := string(keys[i])
-		groupConf, err := UnpackGroupConf(values[i])
+	for index, key := range keys {
+		path := string(key)
+		groupConf, err := UnpackGroupConf(values[index])
 		if err != nil {
 			log.Warnf("unpack the group conf error: %#v", err)
 			continue
@@ -198,9 +198,9 @@ RETRY:
 		return
 	}
 
-	for i := 0; i < len(keys); i++ {
-		path := string(keys[i])
-		value := string(values[i])
+	for index, key := range keys {
+		path := string(key)
+		value := string(values[index])
 		if value == "" {
 			log.Warnf("the client value is nil for path: %s", path)
 			continue

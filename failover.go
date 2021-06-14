@@ -58,13 +58,13 @@ RETRY:
 		return err
 	}
 
-	for pos := 0; pos < len(keys); pos++ {
+	for index, key := range keys {
 		if client, err = event.Group.selectClient(); err != nil {
 			log.Error(err)
 			return err
 		}
-		from := string(keys[pos])
-		value := string(values[pos])
+		from := string(key)
+		value := string(values[index])
 
 		// 新地址
 		to := fmt.Sprintf(JobClientSnapshotPath, event.Group.name, client.name) + strings.TrimPrefix(from, prefixKey)
