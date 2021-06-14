@@ -46,11 +46,9 @@ RETRY:
 	if keys, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
 		goto RETRY
 	}
-
 	if len(keys) == 0 {
 		return
 	}
-
 	for _, value := range values {
 		jobConf, err := UnpackJobConf(value)
 		if err != nil {
@@ -65,7 +63,6 @@ RETRY:
 }
 
 func (manager *JobManager) handleJobConfChangeEvent(changeEvent *etcdevent.KeyChangeEvent) {
-
 	switch changeEvent.Type {
 	case etcdevent.KeyCreateChangeEvent:
 		manager.handleJobCreateEvent(changeEvent.Value)
@@ -104,12 +101,10 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 	if len(value) == 0 {
 		return
 	}
-
 	if jobConf, err = UnpackJobConf(value); err != nil {
 		log.Errorf("unpack the job conf err: %#v", err)
 		return
 	}
-
 	manager.node.scheduler.pushJobChangeEvent(&JobChangeEvent{
 		Type: JobUpdateChangeEvent,
 		Conf: jobConf,
@@ -118,7 +113,7 @@ func (manager *JobManager) handleJobUpdateEvent(value []byte) {
 
 // handle the job delete event
 func (manager *JobManager) handleJobDeleteEvent(key string) {
-	if key == "" {
+	if len(key) == 0 {
 		return
 	}
 	pos := strings.LastIndex(key, "/")
@@ -146,15 +141,12 @@ func (manager *JobManager) AddJob(jobConf *JobConf) (err error) {
 	if value, err = manager.node.etcd.Get(GroupConfPath + jobConf.Group); err != nil {
 		return
 	}
-
 	if len(value) == 0 {
 		err = errors.New("任务集群不存在")
 		return
 	}
-
 	jobConf.Id = GenerateSerialNo()
 	jobConf.Version = 1
-
 	if v, err = PackJobConf(jobConf); err != nil {
 		return
 	}
@@ -176,39 +168,31 @@ func (manager *JobManager) EditJob(jobConf *JobConf) (err error) {
 		success bool
 		oldConf *JobConf
 	)
-
 	if value, err = manager.node.etcd.Get(GroupConfPath + jobConf.Group); err != nil {
 		return
 	}
-
 	if len(value) == 0 {
 		err = errors.New("任务集群不存在")
 		return
 	}
-
-	if jobConf.Id == "" {
+	if len(jobConf.Id) == 0 {
 		err = errors.New("此记录任务配置记录不存在")
 		return
 	}
-
 	if value, err = manager.node.etcd.Get(JobConfPath + jobConf.Id); err != nil {
 		return
 	}
-
 	if len(value) == 0 {
 		err = errors.New("此任务配置记录不存在")
 		return
 	}
-
 	if oldConf, err = UnpackJobConf([]byte(value)); err != nil {
 		return
 	}
-
 	jobConf.Version = oldConf.Version + 1
 	if v, err = PackJobConf(jobConf); err != nil {
 		return
 	}
-
 	if success, err = manager.node.etcd.Update(JobConfPath+jobConf.Id, string(v), string(value)); err != nil {
 		return
 	}
@@ -221,19 +205,14 @@ func (manager *JobManager) EditJob(jobConf *JobConf) (err error) {
 
 // delete job conf
 func (manager *JobManager) DeleteJob(jobConf *JobConf) (err error) {
-	var (
-		value []byte
-	)
-
+	var value []byte
 	if jobConf.Id == "" {
 		err = errors.New("此记录任务配置记录不存在")
 		return
 	}
-
 	if value, err = manager.node.etcd.Get(JobConfPath + jobConf.Id); err != nil {
 		return
 	}
-
 	if len(value) == 0 {
 		err = errors.New("此任务配置记录不存在")
 		return
@@ -244,17 +223,13 @@ func (manager *JobManager) DeleteJob(jobConf *JobConf) (err error) {
 
 // job list
 func (manager *JobManager) JobList() (jobConfs []*JobConf, err error) {
-	var (
-		values [][]byte
-	)
+	var values [][]byte
 	if _, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
 		return
 	}
-
 	if len(values) == 0 {
 		return
 	}
-
 	jobConfs = make([]*JobConf, 0)
 	for _, value := range values {
 		jobConf, err := UnpackJobConf(value)
@@ -276,11 +251,9 @@ func (manager *JobManager) AddGroup(groupConf *GroupConf) (err error) {
 	if value, err = PackGroupConf(groupConf); err != nil {
 		return
 	}
-
 	if success, _, err = manager.node.etcd.PutNotExist(GroupConfPath+groupConf.Name, string(value)); err != nil {
 		return
 	}
-
 	if !success {
 		err = errors.New("此任务集群已存在")
 	}
@@ -297,20 +270,16 @@ func (manager *JobManager) EditGroup(groupConf *GroupConf) (err error) {
 	if value, err = manager.node.etcd.Get(GroupConfPath + groupConf.Name); err != nil {
 		return
 	}
-
 	if len(value) == 0 {
 		err = errors.New("此任务集群不存在")
 		return
 	}
-
 	if newV, err = PackGroupConf(groupConf); err != nil {
 		return
 	}
-
 	if success, err = manager.node.etcd.Update(GroupConfPath+groupConf.Name, string(newV), string(value)); err != nil {
 		return
 	}
-
 	if !success {
 		err = errors.New("此任务集群已存在")
 	}
@@ -319,34 +288,25 @@ func (manager *JobManager) EditGroup(groupConf *GroupConf) (err error) {
 
 // delete group
 func (manager *JobManager) DeleteGroup(groupConf *GroupConf) (err error) {
-
-	var (
-		value []byte
-	)
-
-	if groupConf.Name == "" {
+	var value []byte
+	if len(groupConf.Name) == 0 {
 		err = errors.New("此任务集群不存在")
 		return
 	}
-
 	if value, err = manager.node.etcd.Get(GroupConfPath + groupConf.Name); err != nil {
 		return
 	}
-
 	if len(value) == 0 {
 		err = errors.New("此任务集群不存在")
 		return
 	}
-
 	err = manager.node.etcd.Delete(GroupConfPath + groupConf.Name)
 	return
 }
 
 // group list
 func (manager *JobManager) GroupList() (groupConfs []*GroupConf, err error) {
-	var (
-		values [][]byte
-	)
+	var values [][]byte
 	if _, values, err = manager.node.etcd.GetWithPrefixKey(GroupConfPath); err != nil {
 		return
 	}
@@ -360,7 +320,6 @@ func (manager *JobManager) GroupList() (groupConfs []*GroupConf, err error) {
 			log.Errorf("unpack the group conf errror: %#v", err)
 			continue
 		}
-
 		groupConfs = append(groupConfs, groupConf)
 	}
 	return
@@ -368,17 +327,13 @@ func (manager *JobManager) GroupList() (groupConfs []*GroupConf, err error) {
 
 // node list
 func (manager *JobManager) NodeList() (nodes []string, err error) {
-	var (
-		values [][]byte
-	)
+	var values [][]byte
 	if _, values, err = manager.node.etcd.GetWithPrefixKey(JobNodePath); err != nil {
 		return
 	}
-
 	if len(values) == 0 {
 		return
 	}
-
 	nodes = make([]string, len(values))
 	for index, value := range values {
 		nodes[index] = string(value)
@@ -440,7 +395,6 @@ func (manager *JobManager) Kill(snapshot *JobSnapshot) (err error) {
 	if err != nil {
 		return
 	}
-
 	if !success {
 		err = errors.New("已经执行过了")
 	}
