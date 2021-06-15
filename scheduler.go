@@ -64,8 +64,8 @@ func (sch *JobScheduler) handleJobUpdateEvent(event *JobChangeEvent) {
 	jobConf := event.Conf
 
 	if _, ok = sch.schedulePlans[jobConf.Id]; !ok {
-		log.Warnf("the job conf:%#v not exist", jobConf)
-		log.Warnf("the job conf:%#v change job create event", jobConf)
+		log.Warnf("the job conf: %#v not exist", jobConf)
+		log.Warnf("the job conf: %#v change job create event", jobConf)
 
 		sch.createJobPlan(&JobChangeEvent{
 			Type: JobCreateChangeEvent,
@@ -180,11 +180,8 @@ func (sch *JobScheduler) pushJobChangeEvent(event *JobChangeEvent) {
 
 // loop schedule job
 func (sch *JobScheduler) loopSchedule() {
-
 	timer := time.NewTimer(time.Second)
-
 	for {
-
 		select {
 		case <-timer.C:
 
@@ -193,10 +190,9 @@ func (sch *JobScheduler) loopSchedule() {
 		}
 
 		durationTime := sch.trySchedule()
-		log.Debugf("the durationTime: %d", durationTime)
+		log.Debugf("the durationTime: %v", durationTime)
 		timer.Reset(durationTime)
 	}
-
 }
 
 // try schedule the job
@@ -215,7 +211,6 @@ func (sch *JobScheduler) trySchedule() time.Duration {
 		scheduleTime := plan.NextTime
 		if scheduleTime.Before(now) && sch.node.state == NodeLeaderState {
 			log.Infof("schedule execute the plan: %#v", plan)
-
 			snapshot := &JobSnapshot{
 				Id:         GenerateSerialNo() + plan.Id,
 				JobId:      plan.Id,
@@ -244,58 +239,45 @@ func (sch *JobScheduler) trySchedule() time.Duration {
 		if leastTime.After(nextTime) {
 			leastTime = &nextTime
 		}
-
 	}
-
 	if leastTime.Before(now) {
 		return time.Second
 	}
-
 	return leastTime.Sub(now)
-
 }
 
 func (sch *JobScheduler) loopSync() {
-
 	timer := time.NewTimer(1 * time.Minute)
-
+	defer timer.Stop()
 	for {
-
 		select {
 		case <-timer.C:
 			sch.trySync()
 		}
 		timer.Reset(1 * time.Minute)
-
 	}
-
 }
 
 func (sch *JobScheduler) trySync() {
-
 	var (
 		jobConfs []*JobConf
 		err      error
 	)
-
-	if sch.syncStatus == true {
+	if sch.syncStatus {
 		log.Warn("the sync event is syncing....")
 		return
 	}
-
 	now := time.Now()
-	log.Warn("start sync the schedule plan....")
-
+	log.Info("start sync the schedule plan....")
 	sch.lk.Lock()
 	defer sch.lk.Unlock()
-
 	sch.syncStatus = true
 	defer func() {
 		sch.syncStatus = false
 	}()
 
 	// load all job conf list
-	if jobConfs, err = sch.node.manager.jobList(); err != nil {
+	if jobConfs, err = sch.node.manager.JobList(); err != nil {
 		return
 	}
 
@@ -315,37 +297,25 @@ func (sch *JobScheduler) trySync() {
 			delete(sch.schedulePlans, id)
 		}
 	}
-
-	log.Infof("finish sync the schedule plan use【%dms】....", time.Now().Sub(now)/time.Millisecond)
-
+	log.Infof("finish sync the schedule plan use【%dms】....", time.Since(now).Milliseconds())
 }
 
 // check is old plan?
 func (sch *JobScheduler) existPlan(id string, jobConfs []*JobConf) bool {
-
-	ok := false
 	for _, conf := range jobConfs {
-
 		if conf.Id == id {
-			ok = true
-			break
+			return true
 		}
-
 	}
-
-	return ok
-
+	return false
 }
 
 func (sch *JobScheduler) handleJobConfSync(conf *JobConf) {
-
 	var (
 		exist bool
 		plan  *SchedulePlan
 	)
-
 	if plan, exist = sch.schedulePlans[conf.Id]; !exist {
-
 		if conf.Status == JobRunningStatus {
 			log.Warnf("sync the schedule plan the job conf: %v must create", conf)
 			sch.handleJobCreateEvent(&JobChangeEvent{
@@ -353,17 +323,15 @@ func (sch *JobScheduler) handleJobConfSync(conf *JobConf) {
 				Conf: conf,
 			})
 		}
-
-	} else {
-		if plan.Version < conf.Version {
-			log.Warnf("sync the schedule plan %v must update", plan)
-			sch.handleJobUpdateEvent(&JobChangeEvent{
-				Type: JobUpdateChangeEvent,
-				Conf: conf,
-			})
-		}
+		return
 	}
-
+	if plan.Version < conf.Version {
+		log.Warnf("sync the schedule plan %v must update", plan)
+		sch.handleJobUpdateEvent(&JobChangeEvent{
+			Type: JobUpdateChangeEvent,
+			Conf: conf,
+		})
+	}
 }
 
 // notify the node state change event

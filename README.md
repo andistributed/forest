@@ -70,21 +70,21 @@
     
     CREATE TABLE `job_execute_snapshot` (
       `id` varchar(64) NOT NULL COMMENT '主键',
-      `job_id` varchar(32) NOT NULL COMMENT '任务定义id',
+      `job_id` varchar(32) NOT NULL DEFAULT '' COMMENT '任务定义id',
       `name` varchar(32) NOT NULL COMMENT '任务名称',
       `group` varchar(32) NOT NULL COMMENT '任务集群',
-      `cron` varchar(32) NOT NULL COMMENT 'cron表达式',
+      `cron` varchar(32) NOT NULL DEFAULT '' COMMENT 'cron表达式',
       `target` varchar(255) NOT NULL COMMENT '目标任务',
-      `params` varchar(255) DEFAULT NULL COMMENT '参数',
-      `ip` varchar(32) NOT NULL COMMENT 'ip',
-      `status` tinyint(4) NOT NULL COMMENT '状态 1-执行中 2-完成  3-未知  4-错误',
-      `mobile` varchar(32) DEFAULT NULL COMMENT '手机号码',
-      `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+      `params` varchar(255) NOT NULL DEFAULT '' COMMENT '参数',
+      `ip` varchar(32) NOT NULL DEFAULT '' COMMENT 'ip',
+      `status` tinyint(4) NOT NULL DEFAULT '3' COMMENT '状态(1-执行中;2-完成;3-未知;4-错误)',
+      `mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '手机号码',
+      `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
       `create_time` varchar(32) NOT NULL COMMENT '创建时间',
-      `start_time` varchar(255) DEFAULT NULL COMMENT '开始时间',
-      `finish_time` varchar(32) DEFAULT NULL COMMENT '结束时间',
-      `times` bigint(20) DEFAULT '0' COMMENT '耗时',
-      `result` varchar(255) DEFAULT NULL COMMENT '返回结果',
+      `start_time` varchar(32) NOT NULL DEFAULT '' COMMENT '开始时间',
+      `finish_time` varchar(32) NOT NULL DEFAULT '' COMMENT '结束时间',
+      `times` bigint(20) NOT NULL DEFAULT '0' COMMENT '耗时',
+      `result` varchar(255) NOT NULL DEFAULT '' COMMENT '返回结果',
       PRIMARY KEY (`id`),
       KEY `ip` (`ip`),
       KEY `job_id` (`job_id`),
@@ -160,7 +160,7 @@ nohup etcd  > etcd.log 2>&1 &
 nohup forest  > forest.log 2>&1 & 
 	
 appledeMacBook-Pro:forest apple$ tail -500f forest.log 
-{"time":"2019-07-25T15:05:40.041263+08:00","level":"-","prefix":"-","file":"node.go","line":"71","message":"the job node:192.168.10.35, success register to :/forest/server/node/192.168.10.35"}
+{"time":"2019-07-25T15:05:40.041263+08:00","level":"-","prefix":"-","file":"node.go","line":"71","message":"the job node:192.168.10.35, success register to: /forest/server/node/192.168.10.35"}
 
    ____    __
   / __/___/ /  ___
@@ -172,7 +172,7 @@ ____________________________________O/_______
                                     O\
 {"time":"2019-07-25T15:05:40.046041+08:00","level":"INFO","prefix":"-","file":"group.go","line":"92","message":"add a new group:account,for path:/forest/server/group/account"}
 {"time":"2019-07-25T15:05:40.046172+08:00","level":"INFO","prefix":"-","file":"group.go","line":"92","message":"add a new group:order,for path:/forest/server/group/order"}
-{"time":"2019-07-25T15:05:40.049989+08:00","level":"-","prefix":"-","file":"node.go","line":"210","message":"the job node:192.168.10.35,elect  success to :/forest/server/elect/leader"}
+{"time":"2019-07-25T15:05:40.049989+08:00","level":"-","prefix":"-","file":"node.go","line":"210","message":"the job node:192.168.10.35,elect  success to: /forest/server/elect/leader"}
 {"time":"2019-07-25T15:05:40.050021+08:00","level":"INFO","prefix":"-","file":"group.go","line":"92","message":"add a new group:trade,for path:/forest/server/group/trade"}
 ⇨ http server started on [::]:2856
 
