@@ -24,25 +24,18 @@ type JobAPI struct {
 }
 
 func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
+	e := echo.New()
 	api = &JobAPI{
 		node: node,
 		auth: auth,
+		echo: e,
 	}
-	e := echo.New()
 	e.Use(middleware.Recover(), middleware.Log())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAccessControlAllowOrigin, echo.HeaderAuthorization},
 		AllowMethods: []string{echo.GET, echo.HEAD, echo.PUT, echo.POST, echo.DELETE},
 	}))
-	mwjwt.DefaultJWTConfig.Skipper = func(c echo.Context) bool {
-		switch c.Path() {
-		case `/login`, `/logout`:
-			return true
-		default:
-			return false
-		}
-	}
 	e.SetHTTPErrorHandler(func(err error, c echo.Context) {
 		r := Result{Code: -1, Message: err.Error()}
 		if errors.Is(err, mwjwt.ErrJWTMissing) || errors.Is(err, echo.ErrUnauthorized) {
@@ -53,27 +46,31 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 		}
 		c.JSON(r)
 	})
-	e.Use(mwjwt.JWT([]byte(auth.JWTKey)))
+	jwtAuth := mwjwt.JWT([]byte(auth.JWTKey))
 	e.Use(session.Middleware(nil))
 	e.Post("/login", api.login)
 	e.Post("/logout", api.logout)
-	e.Post("/job/add", api.addJob)
-	e.Post("/job/edit", api.editJob)
-	e.Post("/job/delete", api.deleteJob)
-	e.Post("/job/list", api.jobList)
-	e.Post("/job/execute", api.manualExecute) // 手动执行任务
-	e.Post("/group/add", api.addGroup)
-	e.Post("/group/edit", api.editGroup)
-	e.Post("/group/delete", api.deleteGroup)
-	e.Post("/group/list", api.groupList)
-	e.Post("/node/list", api.nodeList)
-	e.Post("/plan/list", api.planList)
-	e.Post("/client/list", api.clientList)
-	e.Post("/snapshot/list", api.snapshotList)
-	e.Post("/snapshot/delete", api.snapshotDelete)
-	e.Post("/snapshot/add", api.snapshotAdd) // 添加一次性临时任务
-	e.Post("/execute/snapshot/list", api.executeSnapshotList)
-	api.echo = e
+	e.Post("/job/add", api.addJob, jwtAuth)
+	e.Post("/job/edit", api.editJob, jwtAuth)
+	e.Post("/job/delete", api.deleteJob, jwtAuth)
+	e.Post("/job/list", api.jobList, jwtAuth)
+	e.Post("/job/execute", api.manualExecute, jwtAuth) // 手动执行任务
+	e.Post("/group/add", api.addGroup, jwtAuth)
+	e.Post("/group/edit", api.editGroup, jwtAuth)
+	e.Post("/group/delete", api.deleteGroup, jwtAuth)
+	e.Post("/group/list", api.groupList, jwtAuth)
+	e.Post("/node/list", api.nodeList, jwtAuth)
+	e.Post("/plan/list", api.planList, jwtAuth)
+	e.Post("/client/list", api.clientList, jwtAuth)
+	e.Post("/snapshot/list", api.snapshotList, jwtAuth)
+	e.Post("/snapshot/delete", api.snapshotDelete, jwtAuth)
+	e.Post("/execute/snapshot/list", api.executeSnapshotList, jwtAuth)
+
+	// 外部服务接口
+	service := e.Group("/service", APIServiceAuth())
+	// /service/snapshot/add
+	service.Post("/snapshot/add", api.snapshotAdd) // 添加一次性临时任务
+
 	return
 }
 
