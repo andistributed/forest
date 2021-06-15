@@ -1,10 +1,7 @@
 package main
 
 import (
-	"errors"
 	"flag"
-	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -28,10 +25,6 @@ const (
 	defaultAPIHttpsKey  = ``
 )
 
-var (
-	errPasswordInvalid = errors.New("密码不正确")
-)
-
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root
 func main() {
 	log.SetFatalAction(log.ActionPanic)
@@ -43,25 +36,27 @@ func main() {
 	}
 
 	// ETCD
-	etcdCertFile := flag.String("etcd-cert", defaultEtcdCert, "etcd-cert file")
-	etcdKeyFile := flag.String("etcd-key", defaultEtcdKey, "etcd-key file")
-	etcdEndpoints := flag.String("etcd-endpoints", defaultEndpoints, "etcd endpoints")
-	etcdDialTime := flag.Int64("etcd-dailtimeout", defaultDialTimeout, "etcd dailtimeout")
+	etcdCertFile := flag.String("etcd-cert", defaultEtcdCert, "--etcd-cert file")
+	etcdKeyFile := flag.String("etcd-key", defaultEtcdKey, "--etcd-key file")
+	etcdEndpoints := flag.String("etcd-endpoints", defaultEndpoints, "--etcd endpoints")
+	etcdDialTime := flag.Int64("etcd-dailtimeout", defaultDialTimeout, "--etcd dailtimeout")
 
 	// API Server
-	apiCertFile := flag.String("api-tls-cert", defaultAPIHttpsCert, "api-tls-cert file")
-	apiKeyFile := flag.String("api-tls-key", defaultAPIHttpsKey, "api-tls-key file")
-	apiAddress := flag.String("api-address", defaultHTTPAddress, "http address")
-	apiJWTKey := flag.String("api-jwtkey", com.ByteMd5(securecookie.GenerateRandomKey(32)), "jwt key")
+	apiCertFile := flag.String("api-tls-cert", defaultAPIHttpsCert, "--api-tls-cert file")
+	apiKeyFile := flag.String("api-tls-key", defaultAPIHttpsKey, "--api-tls-key file")
+	apiAddress := flag.String("api-address", defaultHTTPAddress, "---api-address "+defaultHTTPAddress)
+	apiJWTKey := flag.String("api-jwtkey", com.ByteMd5(securecookie.GenerateRandomKey(32)), "--api-jwtkey 01234567890123456789012345678901")
 
 	// - admin
-	admName := flag.String("admin-name", "admin", "admin name")
-	admPassword := flag.String("admin-password", "", "admin password")
+	admName := flag.String("admin-name", "admin", "--admin-name admin")
+	admPassword := flag.String("admin-password", "", "--admin-password root")
 
 	// Database
-	dsn := flag.String("dsn", defaultDSN, "dsn for mysql")
+	dsn := flag.String("dsn", defaultDSN, `--dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8"`)
 
-	help := flag.String("help", "", "forest help")
+	currentIP := flag.String("current-ip", ip, "--current-ip "+ip)
+
+	help := flag.String("help", "", "--help")
 	flag.Parse()
 	if *help != "" {
 		flag.Usage()
@@ -78,44 +73,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	node, err := forest.NewJobNode(ip, etcd, *dsn)
+	node, err := forest.NewJobNode(*currentIP, etcd, *dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := newAPIAuth(*admName, *admPassword, *apiJWTKey)
+	auth := forest.NewAPIAuth(*admName, *admPassword, *apiJWTKey)
 	go startAPIServer(node, auth, *apiAddress, *apiCertFile, *apiKeyFile)
 
 	node.Bootstrap()
 }
 
-func startAPIServer(node *forest.JobNode, auth *forest.ApiAuth, httpAddress, apiCertFile, apiKeyFile string) {
+func startAPIServer(node *forest.JobNode, auth *forest.APIAuth, httpAddress, apiCertFile, apiKeyFile string) {
 	var httpServerOpts []engine.ConfigSetter
 	httpServerOpts = append(httpServerOpts, engine.TLSCertFile(apiCertFile))
 	httpServerOpts = append(httpServerOpts, engine.TLSKeyFile(apiKeyFile))
 	node.StartAPIServer(auth, httpAddress, httpServerOpts...)
-}
-
-func newAPIAuth(admName, admPassword, jwtKey string) *forest.ApiAuth {
-	if len(admPassword) == 0 {
-		admPassword = os.Getenv("FOREST_ADMIN_PASSWORD")
-	}
-	if len(admName) == 0 {
-		admName = os.Getenv("FOREST_ADMIN_NAME")
-	}
-	if len(admName) == 0 {
-		admName = `admin`
-	}
-	auth := &forest.ApiAuth{
-		Auth: func(user *forest.InputLogin) error {
-			if user.Username != admName {
-				return fmt.Errorf("用户名不正确: %s", user.Username)
-			}
-			if user.Password != admPassword {
-				return errPasswordInvalid
-			}
-			return nil
-		},
-		JWTKey: jwtKey,
-	}
-	return auth
 }

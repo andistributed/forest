@@ -8,8 +8,8 @@ import (
 
 const (
 	JobSnapshotPath       = "/forest/client/snapshot/"
-	JobSnapshotGroupPath  = "/forest/client/snapshot/%s/"
-	JobClientSnapshotPath = "/forest/client/snapshot/%s/%s/"
+	JobSnapshotGroupPath  = "/forest/client/snapshot/%s/"    // %s:client.group
+	JobClientSnapshotPath = "/forest/client/snapshot/%s/%s/" // %s:client.group %s:client.ip
 )
 
 type JobExecutor struct {
@@ -18,34 +18,32 @@ type JobExecutor struct {
 }
 
 func NewJobExecutor(node *JobNode) (exec *JobExecutor) {
-
 	exec = &JobExecutor{
 		node:      node,
 		snapshots: make(chan *JobSnapshot, 500),
 	}
 	go exec.lookup()
-
 	return
 }
 
 func (exec *JobExecutor) lookup() {
-
 	for snapshot := range exec.snapshots {
-
-		exec.handleJobSnapshot(snapshot)
+		err := exec.handleJobSnapshot(snapshot)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 }
 
 // handle the job snapshot
-func (exec *JobExecutor) handleJobSnapshot(snapshot *JobSnapshot) {
+func (exec *JobExecutor) handleJobSnapshot(snapshot *JobSnapshot) error {
 	var (
 		err    error
 		client *Client
 	)
 	group := snapshot.Group
 	if client, err = exec.node.groupManager.selectClient(group); err != nil {
-		log.Warnf("the group: %s, select a client error: %#v", group, err)
-		return
+		return fmt.Errorf("the group: %s, select a client error: %w", group, err)
 	}
 
 	clientName := client.name
@@ -57,17 +55,15 @@ func (exec *JobExecutor) handleJobSnapshot(snapshot *JobSnapshot) {
 	log.Debugf("snapshotPath: %v", snapshotPath)
 	value, err := PackJobSnapshot(snapshot)
 	if err != nil {
-		log.Warnf("Pack the snapshot %s error: %#v", group, err)
-		return
+		return fmt.Errorf("pack the snapshot %s error: %w", group, err)
 	}
 	if err = exec.node.etcd.Put(snapshotPath+snapshot.Id, string(value)); err != nil {
-		log.Warnf("put the snapshot %s error: %#v", group, err)
+		return fmt.Errorf("put the snapshot %s error: %w", group, err)
 	}
-
+	return nil
 }
 
 // push a new job snapshot
 func (exec *JobExecutor) pushSnapshot(snapshot *JobSnapshot) {
-
 	exec.snapshots <- snapshot
 }

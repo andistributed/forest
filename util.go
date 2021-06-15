@@ -15,7 +15,6 @@ func GenerateSerialNo() string {
 	format := now.Format("20060102150405")
 	suffer := fmt.Sprintf("%06v", rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(1000000))
 	return fmt.Sprintf("%s%s", format, suffer)
-
 }
 
 func ToDateString(date time.Time) string {
@@ -69,7 +68,7 @@ func UnpackJobExecuteSnapshot(value []byte) (snapshot *JobExecuteSnapshot, err e
 func GetLocalIpAddress() (ip string) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Warnf("err:%#v", err)
+		log.Warnf("err: %#v", err)
 		return
 	}
 	for _, value := range addrs {
