@@ -54,7 +54,7 @@ func main() {
 	// Database
 	dsn := flag.String("dsn", defaultDSN, `--dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8"`)
 
-	currentIP := flag.String("current-ip", ip, "--current-ip 192.168.50.100")
+	currentIP := flag.String("current-ip", ip, "--current-ip "+ip)
 
 	help := flag.String("help", "", "--help")
 	flag.Parse()
