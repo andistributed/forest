@@ -193,18 +193,18 @@ func (c *JobCollection) loop() {
 				continue
 			}
 
-			for pos, size := 0, len(keys); pos < size; pos++ {
-				executeSnapshot, err := UnpackJobExecuteSnapshot(values[pos])
+			for index, key := range keys {
+				executeSnapshot, err := UnpackJobExecuteSnapshot(values[index])
 				if err != nil {
-					log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", values[pos], err)
-					_ = c.node.etcd.Delete(string(keys[pos]))
+					log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", values[index], err)
+					_ = c.node.etcd.Delete(string(key))
 					continue
 				}
 
 				if executeSnapshot.Status == JobExecuteSnapshotSuccessStatus ||
 					executeSnapshot.Status == JobExecuteSnapshotErrorStatus ||
 					executeSnapshot.Status == JobExecuteSnapshotUnkonwStatus {
-					path := string(keys[pos])
+					path := string(key)
 					c.handleJobExecuteSnapshot(path, executeSnapshot)
 				}
 			}

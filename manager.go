@@ -39,14 +39,13 @@ func (manager *JobManager) loopLoadJobConf() {
 
 RETRY:
 	var (
-		keys   [][]byte
 		values [][]byte
 		err    error
 	)
-	if keys, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
+	if _, values, err = manager.node.etcd.GetWithPrefixKey(JobConfPath); err != nil {
 		goto RETRY
 	}
-	if len(keys) == 0 {
+	if len(values) == 0 {
 		return
 	}
 	for _, value := range values {

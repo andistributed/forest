@@ -390,11 +390,18 @@ func (api *JobAPI) nodeList(context echo.Context) (err error) {
 		return context.JSON(Result{Code: CodeSuccess, Data: nodes, Message: "查询成功"})
 	}
 	nodes = make([]*Node, len(nodeNames))
+	leaderNodeName := string(leader)
 	for index, name := range nodeNames {
-		if name == string(leader) {
-			nodes[index] = &Node{Name: name, State: NodeLeaderState}
+		if name == leaderNodeName {
+			nodes[index] = &Node{
+				Name:  name,
+				State: NodeLeaderState,
+			}
 		} else {
-			nodes[index] = &Node{Name: name, State: NodeFollowerState}
+			nodes[index] = &Node{
+				Name:  name,
+				State: NodeFollowerState,
+			}
 		}
 	}
 	return context.JSON(Result{Code: CodeSuccess, Data: nodes, Message: "查询成功"})
