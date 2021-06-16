@@ -666,6 +666,10 @@ func (api *JobAPI) snapshotAdd(context echo.Context) (err error) {
 	if len(snapshot.Group) == 0 {
 		return context.JSON(Result{Code: CodeFailure, Message: "group不能为空"})
 	}
+	if len(snapshot.Target) == 0 {
+		return context.JSON(Result{Code: CodeFailure, Message: "target不能为空"})
+	}
+	// TODO: verify group、target exists
 	err = api.node.manager.ManualExecute(snapshot)
 	if err != nil {
 		return context.JSON(Result{Code: CodeFailure, Message: err.Error()})
