@@ -1,7 +1,6 @@
 package forest
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -68,7 +67,9 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	e.Post("/execute/snapshot/list", api.executeSnapshotList, jwtAuth)
 
 	// 外部服务接口
-	service := e.Group("/service", APIServiceAuth())
+	service := e.Group("/service", APIServiceAuth(func() interface{} {
+		return new(JobSnapshot)
+	}))
 	// /service/snapshot/add
 	service.Post("/snapshot/add", api.snapshotAdd) // 添加一次性临时任务
 
@@ -648,14 +649,9 @@ func (api *JobAPI) manualExecute(context echo.Context) (err error) {
 }
 
 func (api *JobAPI) snapshotAdd(context echo.Context) (err error) {
-	snapshot := new(JobSnapshot)
-	b, ok := context.Internal().Get(`body`).([]byte)
-	if !ok {
+	snapshot, ok := context.Internal().Get(`recv`).(*JobSnapshot)
+	if !ok || snapshot == nil {
 		return context.JSON(Result{Code: CodeFailure, Message: "非法的参数"})
-	}
-	err = json.Unmarshal(b, snapshot)
-	if err != nil {
-		return context.JSON(Result{Code: CodeFailure, Message: "非法的参数: " + err.Error()})
 	}
 	snapshot.Id = GenerateSerialNo()
 	if len(snapshot.JobId) > 0 {

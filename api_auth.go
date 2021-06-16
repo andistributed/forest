@@ -1,6 +1,7 @@
 package forest
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -40,7 +41,7 @@ func NewAPIAuth(admName, admPassword, jwtKey string) *APIAuth {
 	return auth
 }
 
-func APIServiceAuth() echo.MiddlewareFuncd {
+func APIServiceAuth(recvNew func() interface{}) echo.MiddlewareFuncd {
 	return middleware.KeyAuth(func(token string, ctx echo.Context) (bool, error) {
 		secret := os.Getenv("FOREST_API_SECRET")
 		if len(secret) == 0 {
@@ -54,7 +55,16 @@ func APIServiceAuth() echo.MiddlewareFuncd {
 		crypto.DecryptBytes([]byte(secret), &b)
 		ok := len(b) > 0
 		if ok {
-			ctx.Internal().Set(`body`, b)
+			if recvNew != nil {
+				recv := recvNew()
+				err = json.Unmarshal(b, recv)
+				if err != nil {
+					return false, err
+				}
+				ctx.Internal().Set(`recv`, recv)
+			} else {
+				ctx.Internal().Set(`body`, b)
+			}
 		}
 		return ok, nil
 	})
