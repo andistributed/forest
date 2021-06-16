@@ -3,8 +3,10 @@ package forest
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 
+	"github.com/andistributed/forest/crypto"
 	"github.com/webx-top/echo"
 	"github.com/webx-top/echo/middleware"
 )
@@ -40,11 +42,21 @@ func NewAPIAuth(admName, admPassword, jwtKey string) *APIAuth {
 
 func APIServiceAuth() echo.MiddlewareFuncd {
 	return middleware.KeyAuth(func(token string, ctx echo.Context) (bool, error) {
-		apiToken := os.Getenv("FOREST_API_TOKEN")
-		if len(apiToken) == 0 {
-			return false, ErrApiTokenEnvVarNotSet
+		secret := os.Getenv("FOREST_API_SECRET")
+		if len(secret) == 0 {
+			return false, crypto.ErrApiSecretEnvVarNotSet
 		}
-		return apiToken == token, nil
+		defer ctx.Request().Body().Close()
+		b, err := ioutil.ReadAll(ctx.Request().Body())
+		if err != nil {
+			return false, err
+		}
+		crypto.DecryptBytes([]byte(secret), &b)
+		ok := len(b) > 0
+		if ok {
+			ctx.Internal().Set(`body`, b)
+		}
+		return ok, nil
 	})
 }
 

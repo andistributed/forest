@@ -9,6 +9,7 @@ require (
 	github.com/andistributed/etcd v0.2.0-beta1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/robfig/cron v1.2.0
+	github.com/webx-top/codec v0.0.1
 	github.com/webx-top/com v0.2.2
 	github.com/webx-top/db v1.4.2
 	github.com/webx-top/echo v2.14.4+incompatible
