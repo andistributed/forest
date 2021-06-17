@@ -9,11 +9,11 @@ import (
 
 	"github.com/andistributed/forest/crypto"
 	"github.com/webx-top/echo"
-	"github.com/webx-top/echo/middleware"
 )
 
 var (
 	ErrPasswordInvalid = errors.New("密码不正确")
+	ErrInvalidPostBody = errors.New("无效的post数据")
 )
 
 func NewAPIAuth(admName, admPassword, jwtKey string) *APIAuth {
@@ -42,32 +42,34 @@ func NewAPIAuth(admName, admPassword, jwtKey string) *APIAuth {
 }
 
 func APIServiceAuth(recvNew func() interface{}) echo.MiddlewareFuncd {
-	return middleware.KeyAuth(func(token string, ctx echo.Context) (bool, error) {
-		secret := os.Getenv("FOREST_API_SECRET")
-		if len(secret) == 0 {
-			return false, crypto.ErrApiSecretEnvVarNotSet
-		}
-		defer ctx.Request().Body().Close()
-		b, err := ioutil.ReadAll(ctx.Request().Body())
-		if err != nil {
-			return false, err
-		}
-		crypto.DecryptBytes([]byte(secret), &b)
-		ok := len(b) > 0
-		if ok {
+	return func(h echo.Handler) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			secret := os.Getenv("FOREST_API_SECRET")
+			if len(secret) == 0 {
+				return crypto.ErrApiSecretEnvVarNotSet
+			}
+			defer ctx.Request().Body().Close()
+			b, err := ioutil.ReadAll(ctx.Request().Body())
+			if err != nil {
+				return err
+			}
+			crypto.DecryptBytes([]byte(secret), &b)
+			if len(b) == 0 {
+				return ErrInvalidPostBody
+			}
 			if recvNew != nil {
 				recv := recvNew()
 				err = json.Unmarshal(b, recv)
 				if err != nil {
-					return false, err
+					return err
 				}
 				ctx.Internal().Set(`recv`, recv)
 			} else {
 				ctx.Internal().Set(`body`, b)
 			}
+			return h.Handle(ctx)
 		}
-		return ok, nil
-	})
+	}
 }
 
 type APIAuth struct {
