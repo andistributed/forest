@@ -115,7 +115,10 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 	if snapshot.Status == JobExecuteSnapshotUnkonwStatus ||
 		snapshot.Status == JobExecuteSnapshotErrorStatus ||
 		snapshot.Status == JobExecuteSnapshotSuccessStatus {
-		_ = c.node.etcd.Delete(path)
+		err := c.node.etcd.Delete(path)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	var days int
@@ -124,7 +127,10 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 		days = TimeSubDays(time.Now(), dateTime)
 	}
 	if snapshot.Status == JobExecuteSnapshotDoingStatus && days >= 3 {
-		_ = c.node.etcd.Delete(path)
+		err := c.node.etcd.Delete(path)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	_, err = c.node.UseTable(TableJobExecuteSnapshot).Insert(snapshot)
 	if err != nil {
@@ -138,7 +144,10 @@ func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *Jo
 	if snapshot.Status == JobExecuteSnapshotUnkonwStatus ||
 		snapshot.Status == JobExecuteSnapshotErrorStatus ||
 		snapshot.Status == JobExecuteSnapshotSuccessStatus {
-		_ = c.node.etcd.Delete(path)
+		err := c.node.etcd.Delete(path)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	var days int
@@ -147,12 +156,14 @@ func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *Jo
 		days = TimeSubDays(time.Now(), dateTime)
 	}
 	if snapshot.Status == JobExecuteSnapshotDoingStatus && days >= 3 {
-		_ = c.node.etcd.Delete(path)
+		err := c.node.etcd.Delete(path)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	err = c.node.UseTable(TableJobExecuteSnapshot).
-		Find(db.Cond{`id`: snapshot.Id}).
-		Update(snapshot)
+		Find(db.Cond{`id`: snapshot.Id}).Update(snapshot)
 	if err != nil {
 		log.Error(err)
 	}
@@ -160,16 +171,13 @@ func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *Jo
 
 // check the exist
 func (c *JobCollection) checkExist(id string) (exist bool, err error) {
-	snapshot := new(JobExecuteSnapshot)
-	if err = c.node.UseTable(TableJobExecuteSnapshot).
-		Find(db.Cond{`id`: id}).
-		One(snapshot); err != nil {
+	exist, err = c.node.UseTable(TableJobExecuteSnapshot).Find(db.Cond{`id`: id}).Exists()
+	if err != nil {
 		if err == db.ErrNoMoreRows {
 			err = nil
 		}
 		return
 	}
-	exist = true
 	return
 }
 
