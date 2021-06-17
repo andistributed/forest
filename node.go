@@ -61,6 +61,12 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 		listeners:    []NodeStateChangeListener{},
 		once:         sync.Once{},
 	}
+	if len(node.id) == 0 {
+		node.id = GetLocalIpAddress()
+		if len(node.id) == 0 {
+			log.Fatal("has no get the ip address")
+		}
+	}
 	if len(dsn) == 0 {
 		dsn = os.Getenv(`FOREST_DSN`)
 	}
