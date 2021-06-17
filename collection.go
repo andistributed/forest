@@ -205,7 +205,10 @@ func (c *JobCollection) loop() {
 				executeSnapshot, err := UnpackJobExecuteSnapshot(values[index])
 				if err != nil {
 					log.Warnf("UnpackJobExecuteSnapshot: %s fail, err: %#v", values[index], err)
-					_ = c.node.etcd.Delete(string(key))
+					err := c.node.etcd.Delete(string(key))
+					if err != nil {
+						log.Error(err)
+					}
 					continue
 				}
 
