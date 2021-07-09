@@ -65,6 +65,7 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	e.Post("/snapshot/list", api.snapshotList, jwtAuth)
 	e.Post("/snapshot/delete", api.snapshotDelete, jwtAuth)
 	e.Post("/execute/snapshot/list", api.executeSnapshotList, jwtAuth)
+	e.Post("/execute/snapshot/retry/:id", api.executeSnapshotRetry, jwtAuth)
 
 	// 外部服务接口
 	service := e.Group("/service", APIServiceAuth(func() interface{} {
@@ -633,6 +634,41 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 ERROR:
 	return context.JSON(Result{Code: CodeFailure, Message: message})
+}
+
+func (api *JobAPI) executeSnapshotRetry(context echo.Context) (err error) {
+	execID := context.Param(`id`)
+	execSnapshot := JobExecuteSnapshot{}
+	err = api.node.UseTable(TableJobExecuteSnapshot).
+		Find(db.Cond{`id`: execID}).
+		One(&execSnapshot)
+	if err != nil {
+		return context.JSON(Result{Code: CodeFailure, Message: err.Error()})
+	}
+	if execSnapshot.Status != JobExecuteSnapshotErrorStatus {
+		return context.JSON(Result{Code: CodeFailure, Message: "当前状态不符合重试条件"})
+	}
+
+	snapshot := &JobSnapshot{
+		Id:         execSnapshot.Id,
+		JobId:      execSnapshot.JobId,
+		Name:       execSnapshot.Name,
+		Group:      execSnapshot.Group,
+		Cron:       execSnapshot.Cron,
+		Target:     execSnapshot.Target,
+		Params:     execSnapshot.Params,
+		Mobile:     execSnapshot.Mobile,
+		Remark:     execSnapshot.Remark,
+		CreateTime: execSnapshot.CreateTime,
+
+		// Ip: execSnapshot.Ip, 执行时分配
+	}
+	err = api.node.manager.ManualExecute(snapshot)
+	if err != nil {
+		return context.JSON(Result{Code: CodeFailure, Message: err.Error()})
+	}
+
+	return context.JSON(Result{Code: CodeSuccess, Message: "手动执行任务请求已提交"})
 }
 
 // manual execute
