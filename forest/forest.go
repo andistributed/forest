@@ -23,6 +23,7 @@ const (
 	defaultEtcdKey      = `` // ca.key
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
+	defaultDebug        = false
 )
 
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root
@@ -54,10 +55,20 @@ func main() {
 	// Database
 	dsn := flag.String("dsn", defaultDSN, `--dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8"`)
 
+	// Node
 	currentIP := flag.String("current-ip", ip, "--current-ip "+ip)
 
+	// Other
+	debug := flag.Bool("debug", defaultDebug, "--debug false")
 	help := flag.String("help", "", "--help")
 	flag.Parse()
+
+	if *debug {
+		log.SetLevel(`Debug`)
+	} else {
+		log.SetLevel(`Info`)
+	}
+
 	if *help != "" {
 		flag.Usage()
 		return
