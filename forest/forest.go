@@ -52,7 +52,7 @@ func main() {
 	apiAddress := flag.String("api-address", defaultHTTPAddress, "---api-address "+defaultHTTPAddress)
 	apiJWTKey := flag.String("api-jwtkey", com.ByteMd5(securecookie.GenerateRandomKey(32)), "--api-jwtkey 01234567890123456789012345678901")
 
-	flag.StringVar(&defaultAPISecret, "api-secret", defaultAPISecret, "--api-secret 01234567890123456789012345678901")
+	flag.StringVar(&defaultAPISecret, "api-secret", defaultAPISecret, "--api-secret 01234567890123456789012345678901 (也可以通过环境变量FOREST_API_SECRET来指定)")
 
 	flag.DurationVar(&forest.ExecuteSnapshotCanRetry, "api-can-retry", forest.ExecuteSnapshotCanRetry, "--api-can-retry 6h") // 指定开始多长时间后可以重试，默认6h
 
