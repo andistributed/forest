@@ -1,0 +1,2 @@
+cd forest/
+go install
