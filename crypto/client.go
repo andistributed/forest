@@ -6,7 +6,9 @@ import (
 	"os"
 )
 
-var ErrApiSecretEnvVarNotSet = errors.New("FOREST_API_SECRET environment variable is not set")
+var (
+	ErrApiSecretEnvVarNotSet = errors.New("FOREST_API_SECRET environment variable is not set")
+)
 
 func EncryptBody(body interface{}) ([]byte, error) {
 	secret := os.Getenv("FOREST_API_SECRET")

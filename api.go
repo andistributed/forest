@@ -17,18 +17,23 @@ import (
 	"github.com/webx-top/echo/middleware/session"
 )
 
+// ExecuteSnapshotCanRetry 指定开始多长时间后可以重试（用于开始后中途异常退出后重试）
+var ExecuteSnapshotCanRetry = time.Hour * 6
+
 type JobAPI struct {
-	node *JobNode
-	echo *echo.Echo
-	auth *APIAuth
+	node                    *JobNode
+	echo                    *echo.Echo
+	auth                    *APIAuth
+	executeSnapshotCanRetry time.Duration
 }
 
 func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 	e := echo.New()
 	api = &JobAPI{
-		node: node,
-		auth: auth,
-		echo: e,
+		node:                    node,
+		auth:                    auth,
+		echo:                    e,
+		executeSnapshotCanRetry: ExecuteSnapshotCanRetry,
 	}
 	e.Use(middleware.Recover(), middleware.Log())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -552,13 +557,18 @@ ERROR:
 	return context.JSON(Result{Code: CodeFailure, Message: message})
 }
 
+type JobExecuteSnapshotExt struct {
+	*JobExecuteSnapshot
+	CanRetry bool `json:"canRetry" db:"-"`
+}
+
 func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 	var (
 		query     *QueryExecuteSnapshotParam
 		message   string
 		count     uint64
-		snapshots []*JobExecuteSnapshot
+		snapshots []*JobExecuteSnapshotExt
 		totalPage uint64
 		where     = db.NewCompounds()
 	)
@@ -577,7 +587,7 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 		query.PageNo = 1
 	}
 
-	snapshots = make([]*JobExecuteSnapshot, 0)
+	snapshots = []*JobExecuteSnapshotExt{}
 	if len(query.Id) > 0 {
 		where.AddKV(`id`, query.Id)
 	}
@@ -620,6 +630,13 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 			totalPage = count/uint64(query.PageSize) + 1
 		}
 
+		now := time.Now().Local()
+		for _, snapshot := range snapshots {
+			if snapshot.JobExecuteSnapshot == nil {
+				continue
+			}
+			snapshot.CanRetry = api.canRetry(snapshot.JobExecuteSnapshot, now)
+		}
 	}
 
 	return context.JSON(Result{
@@ -636,19 +653,40 @@ ERROR:
 	return context.JSON(Result{Code: CodeFailure, Message: message})
 }
 
+func (api *JobAPI) canRetry(snapshot *JobExecuteSnapshot, now time.Time) bool {
+	switch snapshot.Status {
+	case JobExecuteSnapshotErrorStatus:
+		return true
+	case JobExecuteSnapshotUnkonwStatus:
+		if api.executeSnapshotCanRetry > 0 {
+			startTime, _ := time.Parse(`2006-01-02 15:04:05`, snapshot.StartTime)
+			if !startTime.IsZero() {
+				return now.Sub(startTime) > api.executeSnapshotCanRetry
+			}
+		}
+	}
+	return false
+}
+
 func (api *JobAPI) executeSnapshotRetry(context echo.Context) (err error) {
 	execID := context.Param(`id`)
-	execSnapshot := JobExecuteSnapshot{}
+	execSnapshot := &JobExecuteSnapshot{}
 	err = api.node.UseTable(TableJobExecuteSnapshot).
 		Find(db.Cond{`id`: execID}).
-		One(&execSnapshot)
+		One(execSnapshot)
 	if err != nil {
 		return context.JSON(Result{Code: CodeFailure, Message: err.Error()})
 	}
-	if execSnapshot.Status != JobExecuteSnapshotErrorStatus {
+	switch execSnapshot.Status {
+	case JobExecuteSnapshotErrorStatus:
+	case JobExecuteSnapshotUnkonwStatus:
+		if api.canRetry(execSnapshot, time.Now().Local()) {
+			break
+		}
+		fallthrough
+	default:
 		return context.JSON(Result{Code: CodeFailure, Message: "当前状态不符合重试条件"})
 	}
-
 	snapshot := &JobSnapshot{
 		Id:         execSnapshot.Id,
 		JobId:      execSnapshot.JobId,
