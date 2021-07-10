@@ -27,7 +27,7 @@ const (
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
 	defaultDebug        = false
-	defaultVersion      = `0.2.3`
+	defaultVersion      = `0.2.4`
 )
 
 var defaultAPISecret = os.Getenv("FOREST_API_SECRET")

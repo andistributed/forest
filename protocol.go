@@ -26,7 +26,7 @@ const (
 const (
 	JobExecuteSnapshotDoingStatus   = 1
 	JobExecuteSnapshotSuccessStatus = 2
-	JobExecuteSnapshotUnkonwStatus  = 3
+	JobExecuteSnapshotUnknownStatus = 3
 	JobExecuteSnapshotErrorStatus   = -1
 )
 

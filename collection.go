@@ -112,7 +112,7 @@ func (c *JobCollection) handleJobExecuteSnapshot(path string, snapshot *JobExecu
 // handle create job execute snapshot
 func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *JobExecuteSnapshot) {
 
-	if snapshot.Status == JobExecuteSnapshotUnkonwStatus ||
+	if snapshot.Status == JobExecuteSnapshotUnknownStatus ||
 		snapshot.Status == JobExecuteSnapshotErrorStatus ||
 		snapshot.Status == JobExecuteSnapshotSuccessStatus {
 		err := c.node.etcd.Delete(path)
@@ -141,7 +141,7 @@ func (c *JobCollection) handleCreateJobExecuteSnapshot(path string, snapshot *Jo
 // handle update job execute snapshot
 func (c *JobCollection) handleUpdateJobExecuteSnapshot(path string, snapshot *JobExecuteSnapshot) {
 
-	if snapshot.Status == JobExecuteSnapshotUnkonwStatus ||
+	if snapshot.Status == JobExecuteSnapshotUnknownStatus ||
 		snapshot.Status == JobExecuteSnapshotErrorStatus ||
 		snapshot.Status == JobExecuteSnapshotSuccessStatus {
 		err := c.node.etcd.Delete(path)
@@ -214,7 +214,7 @@ func (c *JobCollection) loop() {
 
 				if executeSnapshot.Status == JobExecuteSnapshotSuccessStatus ||
 					executeSnapshot.Status == JobExecuteSnapshotErrorStatus ||
-					executeSnapshot.Status == JobExecuteSnapshotUnkonwStatus {
+					executeSnapshot.Status == JobExecuteSnapshotUnknownStatus {
 					path := string(key)
 					c.handleJobExecuteSnapshot(path, executeSnapshot)
 				}
