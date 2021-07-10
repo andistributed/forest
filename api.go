@@ -657,15 +657,17 @@ func (api *JobAPI) canRetry(snapshot *JobExecuteSnapshot, now time.Time) bool {
 	switch snapshot.Status {
 	case JobExecuteSnapshotErrorStatus:
 		return true
-	case JobExecuteSnapshotUnkonwStatus:
+	case JobExecuteSnapshotUnkonwStatus, JobExecuteSnapshotDoingStatus:
 		if api.executeSnapshotCanRetry > 0 {
 			startTime, _ := time.Parse(`2006-01-02 15:04:05`, snapshot.StartTime)
 			if !startTime.IsZero() {
 				return now.Sub(startTime) > api.executeSnapshotCanRetry
 			}
 		}
+		return false
+	default:
+		return false
 	}
-	return false
 }
 
 func (api *JobAPI) executeSnapshotRetry(context echo.Context) (err error) {
