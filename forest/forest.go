@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,7 @@ const (
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
 	defaultDebug        = false
+	defaultVersion      = `0.2.3`
 )
 
 var defaultAPISecret = os.Getenv("FOREST_API_SECRET")
@@ -68,7 +70,8 @@ func main() {
 
 	// Other
 	debug := flag.Bool("debug", defaultDebug, "--debug false")
-	help := flag.String("help", "", "--help")
+	help := flag.Bool("help", false, "--help")
+	version := flag.Bool("version", false, "--version")
 	flag.Parse()
 
 	if *debug {
@@ -77,8 +80,12 @@ func main() {
 		log.SetLevel(`Info`)
 	}
 
-	if *help != "" {
+	if *help {
 		flag.Usage()
+		return
+	}
+	if *version {
+		fmt.Println(`v` + defaultVersion)
 		return
 	}
 
