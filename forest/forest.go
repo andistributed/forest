@@ -22,15 +22,17 @@ const (
 	defaultHTTPAddress  = ":2856"
 	defaultDialTimeout  = 5
 	defaultDSN          = "root:123456@tcp(127.0.0.1:3306)/forest?charset=utf8"
-	defaultEtcdCert     = `` // ca.crt
-	defaultEtcdKey      = `` // ca.key
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
 	defaultDebug        = false
 	defaultVersion      = `0.2.4`
 )
 
-var defaultAPISecret = os.Getenv("FOREST_API_SECRET")
+var (
+	defaultEtcdCert  = os.Getenv("ETCD_CERT_FILE") // ca.crt
+	defaultEtcdKey   = os.Getenv("ETCD_KEY_FILE")  // ca.key
+	defaultAPISecret = os.Getenv("FOREST_API_SECRET")
+)
 
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root
 func main() {
@@ -45,8 +47,10 @@ func main() {
 	// ETCD
 	etcdCertFile := flag.String("etcd-cert", defaultEtcdCert, "--etcd-cert file")
 	etcdKeyFile := flag.String("etcd-key", defaultEtcdKey, "--etcd-key file")
-	etcdEndpoints := flag.String("etcd-endpoints", defaultEndpoints, "--etcd endpoints "+defaultEndpoints)
-	etcdDialTime := flag.Int64("etcd-dailtimeout", defaultDialTimeout, "--etcd dailtimeout "+strconv.Itoa(defaultDialTimeout))
+	etcdEndpoints := flag.String("etcd-endpoints", defaultEndpoints, "--etcd-endpoints "+defaultEndpoints)
+	etcdDialTime := flag.Int64("etcd-dailtimeout", defaultDialTimeout, "--etcd-dailtimeout "+strconv.Itoa(defaultDialTimeout))
+	etcdUsername := flag.String("etcd-username", os.Getenv("ETCD_USERNAME"), "--etcd-username root")
+	etcdPassword := flag.String("etcd-password", os.Getenv("ETCD_PASSWORD"), "--etcd-password root")
 
 	// API Server
 	apiCertFile := flag.String("api-tls-cert", defaultAPIHttpsCert, "--api-tls-cert file")
@@ -98,6 +102,12 @@ func main() {
 	var etcdOpts []etcdconfig.Configer
 	if len(*etcdCertFile) > 0 && len(*etcdKeyFile) > 0 {
 		etcdOpts = append(etcdOpts, etcdconfig.TLSFile(*etcdCertFile, *etcdKeyFile))
+	}
+	if len(*etcdUsername) > 0 {
+		etcdOpts = append(etcdOpts, etcdconfig.Username(*etcdUsername))
+	}
+	if len(*etcdPassword) > 0 {
+		etcdOpts = append(etcdOpts, etcdconfig.Password(*etcdPassword))
 	}
 	etcd, err := etcd.New(endpoint, dialTime, etcdOpts...)
 	if err != nil {
