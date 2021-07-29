@@ -110,7 +110,7 @@ go build forest.go
 
 appledeMacBook-Pro:forest apple$ go build forest.go 
 go: finding github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2
-go: finding github.com/dgrijalva/jwt-go v3.2.0+incompatible
+go: finding github.com/golang-jwt/jwt v3.2.1+incompatible
 go: finding github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6
 go: finding github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 go: finding github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a

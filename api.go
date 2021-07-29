@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/admpub/log"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/robfig/cron"
 	"github.com/webx-top/db"
 	"github.com/webx-top/echo"
