@@ -25,7 +25,7 @@ const (
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
 	defaultDebug        = false
-	defaultVersion      = `0.2.8`
+	defaultVersion      = `0.3.0`
 )
 
 var (
