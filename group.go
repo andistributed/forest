@@ -80,7 +80,7 @@ func (mgr *JobGroupManager) addGroup(name, path string) {
 	log.Infof("add a new group: %s, for path: %s", name, path)
 }
 
-// delete a group  for path
+// delete a group for path
 func (mgr *JobGroupManager) deleteGroup(path string) {
 	var (
 		group *Group
@@ -92,8 +92,12 @@ func (mgr *JobGroupManager) deleteGroup(path string) {
 		return
 	}
 	// cancel watch the clients
-	group.watcher.Close()
-	group.cancelFunc()
+	if group.watcher != nil {
+		group.watcher.Close()
+	}
+	if group.cancelFunc != nil {
+		group.cancelFunc()
+	}
 	delete(mgr.groups, path)
 	log.Infof("delete a group: %s, for path: %s", group.name, path)
 }
@@ -185,8 +189,7 @@ RETRY:
 		err    error
 	)
 
-	prefix := fmt.Sprintf(ClientPath, group.name)
-	if keys, values, err = group.node.etcd.GetWithPrefixKey(prefix); err != nil {
+	if keys, values, err = group.node.etcd.GetWithPrefixKey(group.watchPath); err != nil {
 		time.Sleep(time.Second)
 		goto RETRY
 	}
