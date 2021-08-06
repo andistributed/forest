@@ -681,6 +681,7 @@ func (api *JobAPI) executeSnapshotRetry(context echo.Context) (err error) {
 	}
 	switch execSnapshot.Status {
 	case JobExecuteSnapshotErrorStatus:
+		// OK
 	case JobExecuteSnapshotUnknownStatus, JobExecuteSnapshotDoingStatus:
 		if api.canRetry(execSnapshot, time.Now().Local()) {
 			break
