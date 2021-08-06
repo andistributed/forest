@@ -697,7 +697,6 @@ func (api *JobAPI) executeSnapshotRetry(context echo.Context) (err error) {
 		Cron:       execSnapshot.Cron,
 		Target:     execSnapshot.Target,
 		Params:     execSnapshot.Params,
-		Mobile:     execSnapshot.Mobile,
 		Remark:     execSnapshot.Remark,
 		CreateTime: execSnapshot.CreateTime,
 

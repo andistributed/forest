@@ -74,7 +74,6 @@
       `params` varchar(2000) NOT NULL DEFAULT '' COMMENT '参数',
       `ip` varchar(32) NOT NULL DEFAULT '' COMMENT 'ip',
       `status` tinyint(4) NOT NULL DEFAULT '3' COMMENT '状态(1-执行中;2-完成;3-未知;4-错误)',
-      `mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '手机号码',
       `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
       `create_time` varchar(32) NOT NULL COMMENT '创建时间',
       `start_time` varchar(32) NOT NULL DEFAULT '' COMMENT '开始时间',

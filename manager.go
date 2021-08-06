@@ -368,7 +368,6 @@ func (manager *JobManager) ManualExecuteJob(jobId string) error {
 		Cron:       conf.Cron,
 		Target:     conf.Target,
 		Params:     conf.Params,
-		Mobile:     conf.Mobile,
 		Remark:     conf.Remark,
 		CreateTime: ToDateString(time.Now()),
 	}

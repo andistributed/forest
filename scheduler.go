@@ -219,7 +219,6 @@ func (sch *JobScheduler) trySchedule() time.Duration {
 				Cron:       plan.Cron,
 				Target:     plan.Target,
 				Params:     plan.Params,
-				Mobile:     plan.Mobile,
 				Remark:     plan.Remark,
 				CreateTime: ToDateString(now),
 			}
