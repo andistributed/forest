@@ -21,7 +21,6 @@ const (
 	defaultEndpoints    = "127.0.0.1:2379"
 	defaultHTTPAddress  = ":2856"
 	defaultDialTimeout  = 5
-	defaultDSN          = "root:123456@tcp(127.0.0.1:3306)/forest?charset=utf8"
 	defaultAPIHttpsCert = ``
 	defaultAPIHttpsKey  = ``
 	defaultDebug        = false
@@ -32,6 +31,7 @@ var (
 	defaultEtcdCert  = os.Getenv("ETCD_CERT_FILE") // ca.crt
 	defaultEtcdKey   = os.Getenv("ETCD_KEY_FILE")  // ca.key
 	defaultAPISecret = os.Getenv("FOREST_API_SECRET")
+	defaultDSN       = os.Getenv(`FOREST_DSN`)
 )
 
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root

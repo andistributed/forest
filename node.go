@@ -2,7 +2,6 @@ package forest
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -66,9 +65,6 @@ func NewJobNode(id string, etcd *etcd.Etcd, dsn string) (node *JobNode, err erro
 		if len(node.id) == 0 {
 			log.Fatal("has no get the ip address")
 		}
-	}
-	if len(dsn) == 0 {
-		dsn = os.Getenv(`FOREST_DSN`)
 	}
 	if len(dsn) > 0 {
 		if err := node.SetDSN(dsn); err != nil {
