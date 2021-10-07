@@ -67,7 +67,7 @@ func main() {
 	admPassword := flag.String("admin-password", "", "--admin-password root (也可以通过环境变量FOREST_ADMIN_PASSWORD来指定)")
 
 	// Database
-	dsn := flag.String("dsn", defaultDSN, `--dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" (也可以通过环境变量FOREST_DSN来指定)`)
+	dsn := flag.String("dsn", defaultDSN, `--dsn=root:root@tcp(127.0.0.1:3306)/forest?charset=utf8 (也可以通过环境变量FOREST_DSN来指定)`)
 
 	// Node
 	currentIP := flag.String("current-ip", ip, "--current-ip "+ip)
