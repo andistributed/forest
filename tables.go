@@ -9,7 +9,7 @@ var (
 		"CREATE TABLE `job_execute_snapshot` (\n" +
 			"`id` varchar(64) NOT NULL COMMENT '主键',\n" +
 			"`job_id` varchar(32) NOT NULL DEFAULT '' COMMENT '任务定义id',\n" +
-			"`name` varchar(32) NOT NULL COMMENT '任务名称',\n" +
+			"`name` varchar(120) NOT NULL COMMENT '任务名称',\n" +
 			"`group` varchar(32) NOT NULL COMMENT '任务集群',\n" +
 			"`cron` varchar(32) NOT NULL DEFAULT '' COMMENT 'cron表达式',\n" +
 			"`target` varchar(255) NOT NULL COMMENT '目标任务',\n" +
