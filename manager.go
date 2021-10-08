@@ -8,6 +8,7 @@ import (
 
 	"github.com/admpub/log"
 	"github.com/andistributed/etcd/etcdevent"
+	"github.com/webx-top/com"
 )
 
 const (
@@ -383,6 +384,7 @@ func (manager *JobManager) ManualExecute(snapshot *JobSnapshot) error {
 	if len(snapshot.CreateTime) == 0 {
 		snapshot.CreateTime = ToDateString(time.Now())
 	}
+	snapshot.Name = com.Substr(snapshot.Name, ``, 120)
 	return manager.node.exec.handleJobSnapshot(snapshot)
 }
 
