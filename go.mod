@@ -7,13 +7,17 @@ require (
 	github.com/admpub/log v1.3.2
 	github.com/admpub/securecookie v1.1.2
 	github.com/admpub/sessions v0.1.3 // indirect
-	github.com/andistributed/etcd v0.2.8
+	github.com/andistributed/etcd v0.2.10
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/robfig/cron v1.2.0
-	github.com/webx-top/codec v0.1.1
-	github.com/webx-top/com v0.3.6
-	github.com/webx-top/db v1.20.5
-	github.com/webx-top/echo v2.25.0+incompatible
-	go.etcd.io/etcd/client/v3 v3.5.2
-	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2 // indirect
+	github.com/webx-top/codec v0.2.0
+	github.com/webx-top/com v0.3.9
+	github.com/webx-top/db v1.20.10
+	github.com/webx-top/echo v2.26.5+incompatible
+	go.etcd.io/etcd/client/v3 v3.5.4
+	go.uber.org/multierr v1.8.0 // indirect
+	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
+	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 // indirect
+	google.golang.org/genproto v0.0.0-20220429170224-98d788798c3e // indirect
+	google.golang.org/grpc v1.46.0 // indirect
 )

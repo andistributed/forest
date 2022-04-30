@@ -7,7 +7,7 @@ import (
 
 // Decrypt 数据解密
 func Decrypt(secret string, datas ...*string) {
-	crypto := codec.NewAesECBCrypto(`AES-256`)
+	crypto := codec.NewAESECB(`AES-256`)
 	for _, data := range datas {
 		if len(*data) == 0 {
 			continue
@@ -18,7 +18,7 @@ func Decrypt(secret string, datas ...*string) {
 
 // DecryptBytes 数据解密
 func DecryptBytes(secret []byte, datas ...*[]byte) {
-	crypto := codec.NewAesECBCrypto(`AES-256`)
+	crypto := codec.NewAESECB(`AES-256`)
 	for _, data := range datas {
 		if len(*data) == 0 {
 			continue
@@ -29,7 +29,7 @@ func DecryptBytes(secret []byte, datas ...*[]byte) {
 
 // Encrypt 数据加密
 func Encrypt(secret string, datas ...*string) {
-	crypto := codec.NewAesECBCrypto(`AES-256`)
+	crypto := codec.NewAESECB(`AES-256`)
 	for _, data := range datas {
 		if len(*data) == 0 {
 			continue
@@ -40,7 +40,7 @@ func Encrypt(secret string, datas ...*string) {
 
 // EncryptBytes 数据加密
 func EncryptBytes(secret []byte, datas ...*[]byte) {
-	crypto := codec.NewAesECBCrypto(`AES-256`)
+	crypto := codec.NewAESECB(`AES-256`)
 	for _, data := range datas {
 		if len(*data) == 0 {
 			continue
