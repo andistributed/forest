@@ -17,21 +17,19 @@ import (
 	"github.com/webx-top/echo/engine"
 )
 
-const (
-	defaultEndpoints    = "127.0.0.1:2379"
-	defaultHTTPAddress  = ":2856"
-	defaultDialTimeout  = 5
-	defaultAPIHttpsCert = ``
-	defaultAPIHttpsKey  = ``
+var (
+	defaultEndpoints    = com.Getenv("ETCD_ENDPOINTS", "127.0.0.1:2379")
+	defaultHTTPAddress  = com.Getenv("FOREST_HTTP_ADDRESS", ":2856")
+	defaultDialTimeout  = com.GetenvInt("ETCD_DIAL_TIMEOUT", 5)
+	defaultAPIHttpsCert = com.Getenv("FOREST_HTTPS_CERT_FILE")
+	defaultAPIHttpsKey  = com.Getenv("FOREST_HTTPS_KEY_FILE")
+	defaultAPIJWTKey    = com.Getenv("FOREST_JWT_KEY", com.ByteMd5(securecookie.GenerateRandomKey(32)))
 	defaultDebug        = false
 	defaultVersion      = `0.3.3`
-)
-
-var (
-	defaultEtcdCert  = os.Getenv("ETCD_CERT_FILE") // ca.crt
-	defaultEtcdKey   = os.Getenv("ETCD_KEY_FILE")  // ca.key
-	defaultAPISecret = os.Getenv("FOREST_API_SECRET")
-	defaultDSN       = os.Getenv(`FOREST_DSN`)
+	defaultEtcdCert     = os.Getenv("ETCD_CERT_FILE") // ca.crt
+	defaultEtcdKey      = os.Getenv("ETCD_KEY_FILE")  // ca.key
+	defaultAPISecret    = os.Getenv("FOREST_API_SECRET")
+	defaultDSN          = os.Getenv(`FOREST_DSN`)
 )
 
 // go run forest.go --dsn="root:root@tcp(127.0.0.1:3306)/forest?charset=utf8" --admin-password=root
@@ -45,18 +43,18 @@ func main() {
 	}
 
 	// ETCD
-	etcdCertFile := flag.String("etcd-cert", defaultEtcdCert, "--etcd-cert file")
-	etcdKeyFile := flag.String("etcd-key", defaultEtcdKey, "--etcd-key file")
-	etcdEndpoints := flag.String("etcd-endpoints", defaultEndpoints, "--etcd-endpoints "+defaultEndpoints)
-	etcdDialTime := flag.Int64("etcd-dailtimeout", defaultDialTimeout, "--etcd-dailtimeout "+strconv.Itoa(defaultDialTimeout))
-	etcdUsername := flag.String("etcd-username", os.Getenv("ETCD_USERNAME"), "--etcd-username root")
-	etcdPassword := flag.String("etcd-password", os.Getenv("ETCD_PASSWORD"), "--etcd-password root")
+	etcdCertFile := flag.String("etcd-cert", defaultEtcdCert, "--etcd-cert file (也可以通过环境变量ETCD_CERT_FILE来指定)")
+	etcdKeyFile := flag.String("etcd-key", defaultEtcdKey, "--etcd-key file (也可以通过环境变量ETCD_KEY_FILE来指定)")
+	etcdEndpoints := flag.String("etcd-endpoints", defaultEndpoints, "--etcd-endpoints "+defaultEndpoints+" (也可以通过环境变量ETCD_ENDPOINTS来指定)")
+	etcdDialTime := flag.Int64("etcd-dialtimeout", int64(defaultDialTimeout), "--etcd-dialtimeout "+strconv.Itoa(defaultDialTimeout)+" (也可以通过环境变量ETCD_DIAL_TIMEOUT来指定)")
+	etcdUsername := flag.String("etcd-username", os.Getenv("ETCD_USERNAME"), "--etcd-username root (也可以通过环境变量ETCD_USERNAME来指定)")
+	etcdPassword := flag.String("etcd-password", os.Getenv("ETCD_PASSWORD"), "--etcd-password root (也可以通过环境变量ETCD_PASSWORD来指定)")
 
 	// API Server
-	apiCertFile := flag.String("api-tls-cert", defaultAPIHttpsCert, "--api-tls-cert file")
-	apiKeyFile := flag.String("api-tls-key", defaultAPIHttpsKey, "--api-tls-key file")
-	apiAddress := flag.String("api-address", defaultHTTPAddress, "---api-address "+defaultHTTPAddress)
-	apiJWTKey := flag.String("api-jwtkey", com.ByteMd5(securecookie.GenerateRandomKey(32)), "--api-jwtkey 01234567890123456789012345678901")
+	apiCertFile := flag.String("api-tls-cert", defaultAPIHttpsCert, "--api-tls-cert file (也可以通过环境变量FOREST_HTTPS_CERT_FILE来指定)")
+	apiKeyFile := flag.String("api-tls-key", defaultAPIHttpsKey, "--api-tls-key file (也可以通过环境变量FOREST_HTTPS_KEY_FILE来指定)")
+	apiAddress := flag.String("api-address", defaultHTTPAddress, "---api-address "+defaultHTTPAddress+" (也可以通过环境变量FOREST_HTTP_ADDRESS来指定)")
+	apiJWTKey := flag.String("api-jwtkey", defaultAPIJWTKey, "--api-jwtkey 01234567890123456789012345678901 (也可以通过环境变量FOREST_JWT_KEY来指定)")
 
 	flag.StringVar(&defaultAPISecret, "api-secret", defaultAPISecret, "--api-secret 01234567890123456789012345678901 (也可以通过环境变量FOREST_API_SECRET来指定)")
 
