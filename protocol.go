@@ -146,11 +146,28 @@ func (s *JobExecuteSnapshot) Path() string {
 	return JobExecuteStatusCollectionPath + `/` + s.Group + `/` + s.Ip + `/`
 }
 
+func (s *JobExecuteSnapshot) NewSnapshot() *JobSnapshot {
+	return &JobSnapshot{
+		Id:         s.Id,
+		JobId:      s.JobId,
+		Name:       s.Name,
+		Group:      s.Group,
+		Cron:       s.Cron,
+		Target:     s.Target,
+		Params:     s.Params,
+		Remark:     s.Remark,
+		CreateTime: s.CreateTime,
+
+		// Ip: s.Ip, 执行时分配
+	}
+}
+
 type QueryExecuteSnapshotParam struct {
 	Group    string `json:"group"`
 	Id       string `json:"id"`
 	Ip       string `json:"ip"`
 	JobId    string `json:"jobId"`
+	Target   string `json:"target"`
 	Name     string `json:"name"`
 	Status   int    `json:"status"`
 	PageSize int    `json:"pageSize"`

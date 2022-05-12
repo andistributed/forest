@@ -99,7 +99,7 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 	)
 	user := &InputLogin{}
 	if err = context.MustBind(user); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 	if len(user.Username) == 0 {
@@ -153,7 +153,7 @@ func (api *JobAPI) addJob(context echo.Context) (err error) {
 	var message string
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -202,7 +202,7 @@ func (api *JobAPI) editJob(context echo.Context) (err error) {
 	var message string
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -264,7 +264,7 @@ func (api *JobAPI) deleteJob(context echo.Context) (err error) {
 	var message string
 	jobConf := new(JobConf)
 	if err = context.MustBind(jobConf); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -289,7 +289,7 @@ func (api *JobAPI) addGroup(context echo.Context) (err error) {
 	var message string
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -323,7 +323,7 @@ func (api *JobAPI) editGroup(context echo.Context) (err error) {
 
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -353,7 +353,7 @@ func (api *JobAPI) deleteGroup(context echo.Context) (err error) {
 	var message string
 	groupConf := new(GroupConf)
 	if err = context.MustBind(groupConf); err != nil {
-		message = "请求参数不能为空"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 	if len(groupConf.Name) == 0 {
@@ -443,7 +443,7 @@ func (api *JobAPI) clientList(context echo.Context) (err error) {
 
 	query = new(QueryClientParam)
 	if err = context.MustBind(query); err != nil {
-		message = "请选择任务集群"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -484,7 +484,7 @@ func (api *JobAPI) snapshotList(context echo.Context) (err error) {
 
 	query = new(QuerySnapshotParam)
 	if err = context.MustBind(query); err != nil {
-		message = "非法的请求参数"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -537,7 +537,7 @@ func (api *JobAPI) snapshotDelete(context echo.Context) (err error) {
 
 	query = new(QuerySnapshotParam)
 	if err = context.MustBind(query); err != nil {
-		message = "非法的请求参数"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -575,7 +575,7 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 
 	query = new(QueryExecuteSnapshotParam)
 	if err = context.MustBind(query); err != nil {
-		message = "非法的请求参数"
+		message = "解析请求参数失败: " + err.Error()
 		goto ERROR
 	}
 
@@ -602,6 +602,9 @@ func (api *JobAPI) executeSnapshotList(context echo.Context) (err error) {
 	}
 	if query.Status != 0 {
 		where.AddKV(`status`, query.Status)
+	}
+	if len(query.Target) > 0 {
+		where.AddKV(`target`, query.Target)
 	}
 	if count, err = api.node.UseTable(TableJobExecuteSnapshot).
 		Find(where.And()).
@@ -690,19 +693,7 @@ func (api *JobAPI) executeSnapshotRetry(context echo.Context) (err error) {
 	default:
 		return context.JSON(Result{Code: CodeFailure, Message: "当前状态不符合重试条件"})
 	}
-	snapshot := &JobSnapshot{
-		Id:         execSnapshot.Id,
-		JobId:      execSnapshot.JobId,
-		Name:       execSnapshot.Name,
-		Group:      execSnapshot.Group,
-		Cron:       execSnapshot.Cron,
-		Target:     execSnapshot.Target,
-		Params:     execSnapshot.Params,
-		Remark:     execSnapshot.Remark,
-		CreateTime: execSnapshot.CreateTime,
-
-		// Ip: execSnapshot.Ip, 执行时分配
-	}
+	snapshot := execSnapshot.NewSnapshot()
 	err = api.node.manager.ManualExecute(snapshot)
 	if err != nil {
 		return context.JSON(Result{Code: CodeFailure, Message: err.Error()})

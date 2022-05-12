@@ -26,6 +26,7 @@ var (
 			"KEY `ip` (`ip`),\n" +
 			"KEY `job_id` (`job_id`),\n" +
 			"KEY `status` (`status`),\n" +
+			"KEY `target` (`target`),\n" +
 			"KEY `group` (`group`)\n" +
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='任务作业执行快照';\n",
 	}
