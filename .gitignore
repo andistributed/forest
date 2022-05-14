@@ -3,3 +3,9 @@ go.sum
 .idea/
 cookiesecret
 tower-*
+
+forest-data
+/docker/forest/bin/*
+!/docker/forest/bin/build.sh
+/docker/forest/forest-ui/forester_*
+/docker/forest/forest-cmdjob/forestcmdjob_*
