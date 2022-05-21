@@ -1,0 +1,62 @@
+version: '3'
+services:
+  forest:
+    container_name: forest
+    image: admpub/forest:latest
+    depends_on:
+      - mysql
+      - etcd
+    expose:
+      - 2856
+    ports:
+      - 2856:2856
+    links:
+      - "mysql:mysql"
+      - "etcd:etcd"
+      - "forest-cmdjob:forest-cmdjob"
+    command: [ "--etcd-endpoints", "etcd:2379", "--dsn", "root:root@tcp(mysql:3306)/forest?charset=utf8", "--admin-password", "root", "--api-address", ":2856" ]
+  forest-cmdjob:
+    container_name: forest-cmdjob
+    image: admpub/forest-cmdjob:latest
+    depends_on:
+      - etcd
+    links:
+      - "etcd:etcd"
+    command: [ "--etcd-endpoints", "etcd:2379", "--current-ip", "forest-cmdjob"]
+  forest-ui:
+    container_name: forest-ui
+    image: admpub/forest-ui:latest
+    ports:
+      - 8086:8086
+    command: [ "--listen", ":8086", "--api", "http://127.0.0.1:2856" ]
+  mysql:
+    container_name: mysql
+    image: mysql
+    volumes:
+      - ./forest-data/mysql/data:/var/lib/mysql/
+      - ./forest-data/mysql/conf:/etc/mysql/conf.d/
+      - ./forest-data/mysql/run:/var/run/mysqld/
+    expose:
+      - 3306
+    cap_add:
+      - SYS_NICE 
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+  etcd:
+    container_name: etcd
+    image: bitnami/etcd
+    expose:
+     - 2379
+    # ports:
+    #   - 2379:2379
+    #   - 2380:2380
+    volumes:
+      - ./forest-data/etcd/conf/conf.yml:/opt/bitnami/etcd/conf/etcd.conf.yml
+      - ./forest-data/etcd/data:/bitnami/etcd/data/
+    environment:
+      #- ETCD_ROOT_PASSWORD=
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    restart: always
