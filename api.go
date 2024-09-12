@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/admpub/log"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/robfig/cron"
 	"github.com/webx-top/db"
 	"github.com/webx-top/echo"
@@ -92,10 +92,9 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 	var (
 		message   string
 		signed    string
-		claims    *jwt.StandardClaims
+		claims    *jwt.RegisteredClaims
 		now       time.Time
-		ts        int64
-		expiresAt int64
+		expiresAt time.Time
 	)
 	user := &InputLogin{}
 	if err = context.MustBind(user); err != nil {
@@ -118,19 +117,18 @@ func (api *JobAPI) login(context echo.Context) (err error) {
 		message = err.Error()
 		goto ERROR
 	}
-	now = time.Now().Local()
-	ts = now.Unix()
-	expiresAt = ts + 30*86400
-	claims = &jwt.StandardClaims{
-		Audience:  context.Session().MustID(),
-		ExpiresAt: expiresAt,
-		Id:        user.Username,
-		IssuedAt:  ts,
+	now = time.Now()
+	expiresAt = now.Add(time.Second * time.Duration(30*86400))
+	claims = &jwt.RegisteredClaims{
+		Audience:  jwt.ClaimStrings([]string{context.Session().MustID()}),
+		ExpiresAt: jwt.NewNumericDate(expiresAt),
+		ID:        user.Username,
+		IssuedAt:  jwt.NewNumericDate(now),
 		Issuer:    `forest`,
-		NotBefore: ts - 86400,
+		NotBefore: jwt.NewNumericDate(now.Add(time.Second * time.Duration(-86400))),
 		Subject:   user.Username,
 	}
-	signed, err = mwjwt.BuildStandardSignedString(claims, []byte(api.auth.JWTKey))
+	signed, err = mwjwt.BuildSignedString(claims, []byte(api.auth.JWTKey))
 	if err != nil {
 		message = err.Error()
 		goto ERROR
