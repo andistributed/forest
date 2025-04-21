@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/admpub/log"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/robfig/cron"
 	"github.com/webx-top/db"
 	"github.com/webx-top/echo"
@@ -47,7 +47,7 @@ func NewJobAPI(node *JobNode, auth *APIAuth) (api *JobAPI) {
 			r.Code = -2
 			r.Message = `请重新登录`
 		} else {
-			log.Debugf(err.Error())
+			log.Debug(err.Error())
 		}
 		c.JSON(r)
 	})
